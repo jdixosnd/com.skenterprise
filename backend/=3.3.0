@@ -1,0 +1,15 @@
+Collecting django-import-export
+  Downloading django_import_export-4.4.0-py3-none-any.whl.metadata (12 kB)
+Collecting diff-match-patch==20241021 (from django-import-export)
+  Downloading diff_match_patch-20241021-py3-none-any.whl.metadata (5.5 kB)
+Requirement already satisfied: Django>=4.2 in ./venv/lib/python3.12/site-packages (from django-import-export) (4.2.28)
+Collecting tablib>=3.7.0 (from django-import-export)
+  Downloading tablib-3.9.0-py3-none-any.whl.metadata (3.8 kB)
+Requirement already satisfied: asgiref<4,>=3.6.0 in ./venv/lib/python3.12/site-packages (from Django>=4.2->django-import-export) (3.11.1)
+Requirement already satisfied: sqlparse>=0.3.1 in ./venv/lib/python3.12/site-packages (from Django>=4.2->django-import-export) (0.5.5)
+Downloading django_import_export-4.4.0-py3-none-any.whl (157 kB)
+Downloading diff_match_patch-20241021-py3-none-any.whl (43 kB)
+Downloading tablib-3.9.0-py3-none-any.whl (49 kB)
+Installing collected packages: tablib, diff-match-patch, django-import-export
+
+Successfully installed diff-match-patch-20241021 django-import-export-4.4.0 tablib-3.9.0

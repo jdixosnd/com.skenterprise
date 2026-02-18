@@ -1,0 +1,29 @@
+# Core Django
+Django>=4.2,<4.3
+djangorestframework>=3.14.0
+
+# Database
+psycopg2-binary>=2.9.9
+
+# Image Processing
+Pillow>=10.1.0
+
+# Document Generation
+reportlab>=4.0.7
+openpyxl>=3.1.2
+
+# API Utilities
+django-cors-headers>=4.3.1
+django-filter>=23.5
+python-dateutil>=2.8.2
+
+# Import/Export for data backup
+django-import-export>=3.3.0
+
+# Production Server
+gunicorn>=21.2.0
+whitenoise>=6.6.0
+
+# AWS/S3 Support (optional, uncomment if using S3)
+# boto3>=1.34.0
+# django-storages>=1.14.0
