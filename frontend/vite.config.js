@@ -16,5 +16,9 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+    allowedHosts: [
+      'skenterprise.cloud',
+      '.skenterprise.cloud' 
+    ]
   },
 })
