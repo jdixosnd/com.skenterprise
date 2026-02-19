@@ -144,7 +144,10 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Media files (uploaded content like company logos)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
+SESSION_COOKIE_DOMAIN = ".skenterprise.cloud"
+CSRF_COOKIE_DOMAIN = ".skenterprise.cloud"
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
