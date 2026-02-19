@@ -146,8 +146,8 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
-SESSION_COOKIE_DOMAIN = ".skenterprise.cloud"
-CSRF_COOKIE_DOMAIN = ".skenterprise.cloud"
+SESSION_COOKIE_DOMAIN = None
+CSRF_COOKIE_DOMAIN = None
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
@@ -179,7 +179,7 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = [
     "https://skenterprise.cloud",
 ]
-SECURE_SSL_REDIRECT = True
+SECURE_SSL_REDIRECT = False
 USE_X_FORWARDED_HOST = True
 
 CORS_ALLOW_ALL_ORIGINS = False  # For development only
