@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-k-7r(-qq6v1hg33))tii38jxpt(muh8zrl+68iv+rfl0bpr$4j'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'skenterprise.cloud']
 
@@ -173,27 +173,25 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = [
     "https://skenterprise.cloud",
 ]
-CORS_ALLOW_ALL_ORIGINS = True  # For development only
+CORS_ALLOW_ALL_ORIGINS = False  # For development only
 CORS_ALLOW_CREDENTIALS = True
 ALLOWED_HOSTS = ["*"]
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 # CSRF settings for React frontend
-CSRF_TRUSTED_ORIGINS = [
-  
-   'https://skenterprise.cloud'
+CSRF_TRUSTED_ORIGINS = [   'https://skenterprise.cloud'
   
 ]
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 CSRF_COOKIE_SAMESITE = 'Lax'  # Lax for same-site requests over HTTP
-CSRF_COOKIE_DOMAIN = None  # Allow cookies for any domain
+#CSRF_COOKIE_DOMAIN = None  # Allow cookies for any domain
 CSRF_USE_SESSIONS = False  # Use cookie-based CSRF tokens
 CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read CSRF cookie
 
 # Session settings
 SESSION_COOKIE_SAMESITE = 'Lax'  # Lax for same-site requests over HTTP
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_DOMAIN = None  # Allow cookies for any domain
+#SESSION_COOKIE_DOMAIN = None  # Allow cookies for any domain
 
 # Login settings
 LOGIN_URL = '/api-auth/login/'
