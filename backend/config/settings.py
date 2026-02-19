@@ -180,14 +180,9 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 # CSRF settings for React frontend
 CSRF_TRUSTED_ORIGINS = [
-    'http://0.0.0.0:3000',
-    'http://0.0.0.0:8000',
-   'http://skenterprise.cloud:3000',
-   'https://skenterprise.cloud',
-   'http://skenterprise.cloud',
-    'http://skenterprise.cloud:8000',
-    'http://127.0.0.1:3001',
-    'http://127.0.0.1:8000',
+  
+   'https://skenterprise.cloud'
+  
 ]
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 CSRF_COOKIE_SAMESITE = 'Lax'  # Lax for same-site requests over HTTP
