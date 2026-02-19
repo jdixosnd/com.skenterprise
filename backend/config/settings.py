@@ -173,11 +173,15 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = [
     "https://skenterprise.cloud",
 ]
+SECURE_SSL_REDIRECT = True
+USE_X_FORWARDED_HOST = True
+
 CORS_ALLOW_ALL_ORIGINS = False  # For development only
 CORS_ALLOW_CREDENTIALS = True
-ALLOWED_HOSTS = ["*"]
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
 # CSRF settings for React frontend
 CSRF_TRUSTED_ORIGINS = [   'https://skenterprise.cloud'
   
