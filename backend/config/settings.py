@@ -175,35 +175,34 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 50,
 }
 
-# CORS settings
-CORS_ALLOWED_ORIGINS = [
-    "https://skenterprise.cloud",
-]
-SECURE_SSL_REDIRECT = False
+# --- FIXED SECURITY & PROXY SETTINGS ---
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
 
-CORS_ALLOW_ALL_ORIGINS = False  # For development only
-CORS_ALLOW_CREDENTIALS = True
+# Cookies - Must be Secure because you use HTTPS
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = False  # Keep False so React can read CSRF token
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+# Remove Domain settings to prevent cross-site mismatches
+SESSION_COOKIE_DOMAIN = None
+CSRF_COOKIE_DOMAIN = None
+
+# CORS & CSRF Trusted Origins
+CORS_ALLOWED_ORIGINS = ["https://skenterprise.cloud"]
+CSRF_TRUSTED_ORIGINS = ["https://skenterprise.cloud"]
+CORS_ALLOW_CREDENTIALS = True
+
+# Security Headers
+SECURE_SSL_REDIRECT = False # Let Nginx handle the redirect
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
-# CSRF settings for React frontend
-CSRF_TRUSTED_ORIGINS = [   'https://skenterprise.cloud'
-  
-]
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-CSRF_COOKIE_SAMESITE = 'Lax'  # Lax for same-site requests over HTTP
-#CSRF_COOKIE_DOMAIN = None  # Allow cookies for any domain
-CSRF_USE_SESSIONS = False  # Use cookie-based CSRF tokens
-CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read CSRF cookie
 
-# Session settings
-SESSION_COOKIE_SAMESITE = 'Lax'  # Lax for same-site requests over HTTP
-SESSION_COOKIE_HTTPONLY = True
-#SESSION_COOKIE_DOMAIN = None  # Allow cookies for any domain
-
-# Login settings
+# Login URLs (Keep these consistent with your urls.py)
 LOGIN_URL = '/api-auth/login/'
-LOGIN_REDIRECT_URL = '/api/'
-LOGOUT_REDIRECT_URL = '/api/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
