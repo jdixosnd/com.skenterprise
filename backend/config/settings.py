@@ -170,6 +170,9 @@ REST_FRAMEWORK = {
 }
 
 # CORS settings
+CORS_ALLOWED_ORIGINS = [
+    "https://skenterprise.cloud",
+]
 CORS_ALLOW_ALL_ORIGINS = True  # For development only
 CORS_ALLOW_CREDENTIALS = True
 ALLOWED_HOSTS = ["*"]
