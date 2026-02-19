@@ -45,6 +45,9 @@ const BillsHistoryPage = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
+  // Get today's date in YYYY-MM-DD format for max attribute
+  const today = new Date().toISOString().split('T')[0];
+
   useEffect(() => {
     loadParties();
   }, []);
@@ -454,6 +457,7 @@ const BillsHistoryPage = () => {
                 value={filters.start_date}
                 onChange={(e) => setFilters({ ...filters, start_date: e.target.value })}
                 disabled={loading}
+                max={today}
               />
             </div>
 
@@ -464,6 +468,7 @@ const BillsHistoryPage = () => {
                 value={filters.end_date}
                 onChange={(e) => setFilters({ ...filters, end_date: e.target.value })}
                 disabled={loading}
+                max={today}
               />
             </div>
 
