@@ -494,6 +494,10 @@
   margin-left: 0;
 }
 
+.checkbox-label + .help-text {
+  margin-left: calc(18px + 0.75rem);
+}
+
 .display-field {
   padding: 0.5rem 0.75rem;
   background: var(--bg-muted);
