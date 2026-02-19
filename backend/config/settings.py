@@ -178,15 +178,8 @@ ALLOWED_HOSTS = ["*"]
 CSRF_TRUSTED_ORIGINS = [
     'http://0.0.0.0:3000',
     'http://0.0.0.0:8000',
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'http://localhost:3002',
-    'http://localhost:3003',
-    'http://localhost:3004',
-    'http://localhost:8000',
-    'http://192.168.1.21:3001',
-    'http://192.168.1.21:3000',
-    'http://192.168.1.21:8000',
+   'http://skenterprise.cloud:3000',
+    'http://skenterprise.cloud:8000',
     'http://127.0.0.1:3001',
     'http://127.0.0.1:8000',
 ]
