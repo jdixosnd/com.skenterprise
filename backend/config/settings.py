@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'import_export',
     'inventory',
 ]
+INSTALLED_APPS += ['rest_framework.authtoken']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -152,13 +153,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
+        #'rest_framework.authentication.SessionAuthentication',
+        #'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         # DEVELOPMENT ONLY: Allow unauthenticated access for demo mode
         # TODO: Change back to 'rest_framework.permissions.IsAuthenticated' for production
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
