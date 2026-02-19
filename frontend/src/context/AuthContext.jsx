@@ -1,11 +1,11 @@
 import { createContext, useState, useContext, useEffect } from 'react';
+import axios from 'axios';
 import { initializeCSRF } from '../services/api';
 
 const AuthContext = createContext(null);
 
 // Use environment variable if available, fallback to localhost
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
-const AUTH_BASE_URL = API_BASE_URL.replace('/api', '');
 
 // Helper function to get CSRF token from cookie
 const getCsrfToken = () => {
@@ -52,30 +52,30 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      // First, get CSRF token by making a GET request
-      await fetch(`${API_BASE_URL}/csrf/`, {
-        method: 'GET',
-        credentials: 'include',
-      });
+      // Initialize CSRF token first
+      await initializeCSRF();
 
-      // Now get the CSRF token from cookies
+      // Get the CSRF token from cookies
       const csrfToken = getCsrfToken();
 
-      // Perform login with CSRF token
-      const response = await fetch(`${AUTH_BASE_URL}/api-auth/login/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'X-CSRFToken': csrfToken,
-        },
-        body: new URLSearchParams({
-          username,
-          password,
-        }),
-        credentials: 'include',
-      });
+      // Perform login with CSRF token using axios
+      // Note: Django's built-in login expects form-encoded data
+      const response = await axios.post(
+        '/api-auth/login/',
+        new URLSearchParams({ username, password }),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrfToken,
+          },
+          withCredentials: true,
+          baseURL: API_BASE_URL.replace('/api', ''),
+          maxRedirects: 0,
+          validateStatus: (status) => status === 200 || status === 302,
+        }
+      );
 
-      if (response.ok || response.redirected) {
+      if (response.status === 200 || response.status === 302) {
         // After successful login, determine user role
         const userData = {
           username,
@@ -85,8 +85,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('user', JSON.stringify(userData));
         return userData;
       } else {
-        const errorText = await response.text();
-        console.error('Login failed:', errorText);
+        console.error('Login failed with status:', response.status);
         throw new Error('Login failed');
       }
     } catch (error) {
@@ -95,18 +94,26 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    const csrfToken = getCsrfToken();
-    fetch(`${AUTH_BASE_URL}/api-auth/logout/`, {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': csrfToken,
-      },
-      credentials: 'include',
-    }).finally(() => {
+  const logout = async () => {
+    try {
+      const csrfToken = getCsrfToken();
+      await axios.post(
+        '/api-auth/logout/',
+        {},
+        {
+          headers: {
+            'X-CSRFToken': csrfToken,
+          },
+          withCredentials: true,
+          baseURL: API_BASE_URL.replace('/api', ''),
+        }
+      );
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
       setUser(null);
       localStorage.removeItem('user');
-    });
+    }
   };
 
   const determineRole = (username) => {
