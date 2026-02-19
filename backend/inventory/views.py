@@ -298,7 +298,12 @@ class BillViewSet(viewsets.ModelViewSet):
     queryset = Bill.objects.all()
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['party', 'created_by', 'payment_status', 'bill_date']
+    filterset_fields = {
+        'party': ['exact'],
+        'created_by': ['exact'],
+        'payment_status': ['exact'],
+        'bill_date': ['gte', 'lte', 'exact', 'gt', 'lt'],
+    }
     search_fields = ['bill_number', 'party__name']
     ordering_fields = ['bill_number', 'bill_date', 'created_at', 'payment_status']
 
