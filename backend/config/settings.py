@@ -156,10 +156,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        #'rest_framework.authentication.SessionAuthentication',
-        #'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.TokenAuthentication',
-
+        'rest_framework.authentication.SessionAuthentication',  # Enable session auth for frontend
+        'rest_framework.authentication.TokenAuthentication',     # Keep for API clients
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         # DEVELOPMENT ONLY: Allow unauthenticated access for demo mode
@@ -196,6 +194,12 @@ CSRF_COOKIE_DOMAIN = None
 CORS_ALLOWED_ORIGINS = ["https://skenterprise.cloud"]
 CSRF_TRUSTED_ORIGINS = ["https://skenterprise.cloud"]
 CORS_ALLOW_CREDENTIALS = True
+
+# Session Configuration
+SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
+SESSION_SAVE_EVERY_REQUEST = True  # Refresh session on every request
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Persist sessions across browser restarts
+SESSION_COOKIE_NAME = 'textile_sessionid'  # Custom name to avoid conflicts
 
 # Security Headers
 SECURE_SSL_REDIRECT = False # Let Nginx handle the redirect
