@@ -40,11 +40,13 @@ const CalendarView = ({ programs, inwardLots, bills }) => {
       });
     }
 
-    // Add inward lots
+    // Add inward lots (use inward_date, not created_at)
     if (inwardLots && inwardLots.length > 0) {
       inwardLots.forEach(lot => {
         try {
-          const date = lot.created_at instanceof Date ? lot.created_at : new Date(lot.created_at);
+          // Use inward_date for calendar display (the actual inward date, not when it was created in system)
+          const dateField = lot.inward_date || lot.created_at;
+          const date = dateField instanceof Date ? dateField : new Date(dateField);
           const dateKey = format(date, 'yyyy-MM-dd');
           if (!events[dateKey]) {
             events[dateKey] = { programs: [], inwardLots: [], bills: [] };
@@ -56,11 +58,13 @@ const CalendarView = ({ programs, inwardLots, bills }) => {
       });
     }
 
-    // Add bills
+    // Add bills (use bill_date, not created_at)
     if (bills && bills.length > 0) {
       bills.forEach(bill => {
         try {
-          const date = bill.created_at instanceof Date ? bill.created_at : new Date(bill.created_at);
+          // Use bill_date for calendar display (the actual bill date, not when it was created in system)
+          const dateField = bill.bill_date || bill.created_at;
+          const date = dateField instanceof Date ? dateField : new Date(dateField);
           const dateKey = format(date, 'yyyy-MM-dd');
           if (!events[dateKey]) {
             events[dateKey] = { programs: [], inwardLots: [], bills: [] };
@@ -276,7 +280,9 @@ const CalendarView = ({ programs, inwardLots, bills }) => {
     if (inwardLots && inwardLots.length > 0) {
       inwardLots.forEach(lot => {
         try {
-          const date = lot.created_at instanceof Date ? lot.created_at : new Date(lot.created_at);
+          // Use inward_date for calendar stats (the actual inward date, not when it was created in system)
+          const dateField = lot.inward_date || lot.created_at;
+          const date = dateField instanceof Date ? dateField : new Date(dateField);
           const dateKey = format(date, 'yyyy-MM-dd');
           if (dateKey >= monthStartKey && dateKey <= monthEndKey) {
             inwardCount++;
@@ -294,7 +300,9 @@ const CalendarView = ({ programs, inwardLots, bills }) => {
     if (bills && bills.length > 0) {
       bills.forEach(bill => {
         try {
-          const date = bill.created_at instanceof Date ? bill.created_at : new Date(bill.created_at);
+          // Use bill_date for calendar stats (the actual bill date, not when it was created in system)
+          const dateField = bill.bill_date || bill.created_at;
+          const date = dateField instanceof Date ? dateField : new Date(dateField);
           const dateKey = format(date, 'yyyy-MM-dd');
           if (dateKey >= monthStartKey && dateKey <= monthEndKey) {
             billCount++;

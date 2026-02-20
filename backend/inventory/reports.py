@@ -165,7 +165,7 @@ def generate_bill_pdf(bill):
     elements.append(Paragraph('Program Details', heading_style))
 
     table_data = [[
-        'Program No', 'Design No', 'Quality Type', 'Lot Numbers',
+        'Program No', 'Design No', 'Challan No', 'Quality/Lot',
         'Input (m)', 'Output (m)',
         'Rate (Rs./m)', 'Amount (Rs.)'
     ]]
@@ -174,6 +174,7 @@ def generate_bill_pdf(bill):
         lots = program.get_lots()
         lot_numbers = ', '.join([lot.lot_number for lot in lots])
         quality_type = lots[0].quality_type.name if lots else 'N/A'
+        quality_lot_combined = f"{quality_type}\n{lot_numbers}"
 
         # Use centralized rate resolution
         rate = program.get_effective_rate()
@@ -182,8 +183,8 @@ def generate_bill_pdf(bill):
         table_data.append([
             program.program_number,
             program.design_number,
-            quality_type,
-            lot_numbers,
+            program.challan_no or '-',
+            quality_lot_combined,
             f"{program.input_meters:.2f}",
             f"{program.output_meters:.2f}",
             format_indian_number(rate),
@@ -191,8 +192,8 @@ def generate_bill_pdf(bill):
         ])
 
     table = Table(table_data, colWidths=[
-        1.1*inch, 0.9*inch, 1*inch, 1.3*inch,
-        0.75*inch, 0.75*inch,
+        0.95*inch, 0.85*inch, 0.8*inch, 1.4*inch,
+        0.7*inch, 0.7*inch,
         0.85*inch, 1.1*inch
     ])
 
@@ -358,7 +359,7 @@ def generate_ledger_excel(party, start_date, end_date):
     ws2['A1'].alignment = center_align
 
     headers = [
-        'Program No', 'Design No', 'Quality Type', 'Lot Numbers',
+        'Program No', 'Design No', 'Challan No', 'Quality Type', 'Lot Numbers',
         'Input (m)', 'Wastage (m)', 'Output (m)',
         'Status', 'Date'
     ]
@@ -384,6 +385,7 @@ def generate_ledger_excel(party, start_date, end_date):
         ws2.append([
             program.program_number,
             program.design_number,
+            program.challan_no or '-',
             quality_type,
             lot_numbers,
             float(program.input_meters),
@@ -396,9 +398,9 @@ def generate_ledger_excel(party, start_date, end_date):
     for row in ws2.iter_rows(min_row=6, max_row=ws2.max_row):
         for cell in row:
             cell.border = border
-            if cell.column in [5, 6, 7]:  # Input, Wastage, Output columns
+            if cell.column in [6, 7, 8]:  # Input, Wastage, Output columns
                 cell.alignment = right_align
-            elif cell.column in [3, 4]:  # Quality Type and Lot Numbers
+            elif cell.column in [4, 5]:  # Quality Type and Lot Numbers
                 cell.alignment = left_align
 
     # Auto-adjust column widths
@@ -616,7 +618,7 @@ def generate_comprehensive_ledger_excel(fiscal_year):
         ws[f'A{current_row}'].alignment = center_align
         ws[f'A{current_row}'].border = border
 
-        headers = ['Program No', 'Design No', 'Quality Type', 'Lot Numbers', 'Input (m)', 'Wastage (m)', 'Output (m)', 'Status', 'Date']
+        headers = ['Program No', 'Design No', 'Challan No', 'Quality Type', 'Lot Numbers', 'Input (m)', 'Wastage (m)', 'Output (m)', 'Status', 'Date']
         ws.append(headers)
         header_row = ws[ws.max_row]
         for cell in header_row:
@@ -633,6 +635,7 @@ def generate_comprehensive_ledger_excel(fiscal_year):
             ws.append([
                 program.program_number,
                 program.design_number,
+                program.challan_no or '-',
                 quality_type,
                 lot_numbers,
                 float(program.input_meters),
@@ -645,9 +648,9 @@ def generate_comprehensive_ledger_excel(fiscal_year):
         for row in ws.iter_rows(min_row=current_row+2, max_row=ws.max_row):
             for idx, cell in enumerate(row):
                 cell.border = border
-                if idx in [4, 5, 6]:  # Numeric columns (Input, Wastage, Output)
+                if idx in [5, 6, 7]:  # Numeric columns (Input, Wastage, Output)
                     cell.alignment = right_align
-                elif idx in [2, 3]:  # Quality Type and Lot numbers
+                elif idx in [3, 4]:  # Quality Type and Lot numbers
                     cell.alignment = left_align
 
         ws.append([])
@@ -738,15 +741,16 @@ def generate_comprehensive_ledger_excel(fiscal_year):
                     cell.border = border
 
         # Adjust column widths
-        ws.column_dimensions['A'].width = 18  # Program No
-        ws.column_dimensions['B'].width = 16  # Design No
-        ws.column_dimensions['C'].width = 18  # Quality Type
-        ws.column_dimensions['D'].width = 20  # Lot Numbers
-        ws.column_dimensions['E'].width = 12  # Input
-        ws.column_dimensions['F'].width = 12  # Wastage
-        ws.column_dimensions['G'].width = 12  # Output
-        ws.column_dimensions['H'].width = 12  # Status
-        ws.column_dimensions['I'].width = 15  # Date
+        ws.column_dimensions['A'].width = 16  # Program No
+        ws.column_dimensions['B'].width = 14  # Design No
+        ws.column_dimensions['C'].width = 14  # Challan No
+        ws.column_dimensions['D'].width = 16  # Quality Type
+        ws.column_dimensions['E'].width = 18  # Lot Numbers
+        ws.column_dimensions['F'].width = 12  # Input
+        ws.column_dimensions['G'].width = 12  # Wastage
+        ws.column_dimensions['H'].width = 12  # Output
+        ws.column_dimensions['I'].width = 12  # Status
+        ws.column_dimensions['J'].width = 15  # Date
 
         # Add to overview sheet
         overview_ws.append([

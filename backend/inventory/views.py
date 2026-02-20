@@ -183,9 +183,14 @@ class ProcessProgramViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        if instance.status == 'Completed':
+        # Check if program is billed (regardless of completion status)
+        if instance.is_billed():
+            bill_number = instance.get_bill_number()
             return Response(
-                {'error': 'Cannot update completed program'},
+                {
+                    'error': f'Cannot update program. It has been included in Bill {bill_number}. '
+                             f'To edit this program, you must first remove it from the bill or mark the bill as Scrap.'
+                },
                 status=status.HTTP_400_BAD_REQUEST
             )
 

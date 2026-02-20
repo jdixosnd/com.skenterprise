@@ -87,6 +87,7 @@ const ImprovedDashboard = () => {
   const [programFormData, setProgramFormData] = useState({
     party: '',
     design_number: '',
+    challan_no: '',
     input_meters: '',
     output_meters: '',
     rate_per_meter: '',
@@ -538,6 +539,7 @@ const ImprovedDashboard = () => {
       setProgramFormData({
         party: partyId ? String(partyId) : '', // Ensure it's a string for the select element
         design_number: program.design_number,
+        challan_no: program.challan_no || '',
         input_meters: program.input_meters,
         output_meters: program.output_meters || '',
         rate_per_meter: program.rate_per_meter || '',
@@ -561,6 +563,7 @@ const ImprovedDashboard = () => {
       setProgramFormData({
         party: '',
         design_number: '',
+        challan_no: '',
         input_meters: '',
         output_meters: '',
         rate_per_meter: '',
@@ -591,6 +594,9 @@ const ImprovedDashboard = () => {
 
       const formData = new FormData();
       formData.append('design_number', programFormData.design_number);
+      if (programFormData.challan_no) {
+        formData.append('challan_no', programFormData.challan_no);
+      }
       formData.append('input_meters', programFormData.input_meters);
       formData.append('output_meters', programFormData.output_meters || '0');
       formData.append('rate_per_meter', programFormData.rate_per_meter || '0');
@@ -627,6 +633,8 @@ const ImprovedDashboard = () => {
           errorMessage = err.response.data;
         } else if (Array.isArray(err.response.data)) {
           errorMessage = err.response.data.join(', ');
+        } else if (err.response.data.error) {
+          errorMessage = err.response.data.error;
         } else if (err.response.data.detail) {
           errorMessage = err.response.data.detail;
         } else if (err.response.data.lot_allocations) {
@@ -1353,6 +1361,9 @@ const ImprovedDashboard = () => {
                             <th onClick={() => handleSort('design_number', programsSortKey, programsSortDirection, setProgramsSortKey, setProgramsSortDirection, programs, setPrograms)} className="sortable-header">
                               Design Number {renderSortIcon('design_number', programsSortKey, programsSortDirection)}
                             </th>
+                            <th onClick={() => handleSort('challan_no', programsSortKey, programsSortDirection, setProgramsSortKey, setProgramsSortDirection, programs, setPrograms)} className="sortable-header">
+                              Challan No. {renderSortIcon('challan_no', programsSortKey, programsSortDirection)}
+                            </th>
                             <th onClick={() => handleSort('input_meters', programsSortKey, programsSortDirection, setProgramsSortKey, setProgramsSortDirection, programs, setPrograms)} className="sortable-header">
                               Input Meters {renderSortIcon('input_meters', programsSortKey, programsSortDirection)}
                             </th>
@@ -1393,6 +1404,7 @@ const ImprovedDashboard = () => {
                                   </span>
                                 </td>
                                 <td>{program.design_number}</td>
+                                <td>{program.challan_no || '-'}</td>
                                 <td>{parseFloat(program.input_meters).toFixed(2)}m</td>
                                 <td>{parseFloat(program.output_meters || 0).toFixed(2)}m</td>
                                 <td>
@@ -1444,6 +1456,10 @@ const ImprovedDashboard = () => {
                             <div className="data-card-row">
                               <span className="data-card-label">Design Number</span>
                               <span className="data-card-value">{program.design_number}</span>
+                            </div>
+                            <div className="data-card-row">
+                              <span className="data-card-label">Challan No.</span>
+                              <span className="data-card-value">{program.challan_no || '-'}</span>
                             </div>
                             <div className="data-card-row">
                               <span className="data-card-label">Input Meters</span>
@@ -1616,6 +1632,9 @@ const ImprovedDashboard = () => {
                             <th onClick={() => { setBillingProgramsSortKey('design_number'); setBillingProgramsSortDirection(toggleSortDirection(billingProgramsSortKey, 'design_number', billingProgramsSortDirection)); setBillingCurrentPage(1); }} className="sortable-header">
                               Design Number {renderSortIcon('design_number', billingProgramsSortKey, billingProgramsSortDirection)}
                             </th>
+                            <th onClick={() => { setBillingProgramsSortKey('challan_no'); setBillingProgramsSortDirection(toggleSortDirection(billingProgramsSortKey, 'challan_no', billingProgramsSortDirection)); setBillingCurrentPage(1); }} className="sortable-header">
+                              Challan No. {renderSortIcon('challan_no', billingProgramsSortKey, billingProgramsSortDirection)}
+                            </th>
                             <th onClick={() => { setBillingProgramsSortKey('is_billed'); setBillingProgramsSortDirection(toggleSortDirection(billingProgramsSortKey, 'is_billed', billingProgramsSortDirection)); setBillingCurrentPage(1); }} className="sortable-header">
                               Billing Status {renderSortIcon('is_billed', billingProgramsSortKey, billingProgramsSortDirection)}
                             </th>
@@ -1664,6 +1683,7 @@ const ImprovedDashboard = () => {
                                   </span>
                                 </td>
                                 <td>{program.design_number}</td>
+                                <td>{program.challan_no || '-'}</td>
                                 <td>
                                   {program.is_billed ? (
                                     <span style={{
@@ -1791,6 +1811,10 @@ const ImprovedDashboard = () => {
                             <div className="data-card-row">
                               <span className="data-card-label">Design Number</span>
                               <span className="data-card-value">{program.design_number}</span>
+                            </div>
+                            <div className="data-card-row">
+                              <span className="data-card-label">Challan No.</span>
+                              <span className="data-card-value">{program.challan_no || '-'}</span>
                             </div>
                             <div className="data-card-row">
                               <span className="data-card-label">Quality Type</span>
@@ -2215,11 +2239,8 @@ const ImprovedDashboard = () => {
                 })}
                 disabled={loading}
               />
-              <span>GSTIN Registered Transaction</span>
+              <span style={{ marginLeft: '10px' }}>GSTIN Registered Transaction</span>
             </label>
-            <small className="help-text">
-              Check this if the party has provided GSTIN for this transaction
-            </small>
           </div>
 
           <div className="form-group">
@@ -2293,31 +2314,41 @@ const ImprovedDashboard = () => {
                 </strong>
                 <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85em', color: '#666' }}>
                   {programFormData.status === 'Completed'
-                    ? 'This program is locked. Change to Pending to edit fields.'
+                    ? (editingProgram?.is_billed
+                        ? `Cannot reopen - included in Bill ${editingProgram.bill_number}`
+                        : 'Click Reopen to edit this program')
                     : 'Mark as complete when processing is finished.'}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => {
+                  // Check if program is billed before allowing reopen
+                  if (editingProgram?.is_billed && programFormData.status === 'Completed') {
+                    setError(`Cannot reopen program. It has been included in Bill ${editingProgram.bill_number}. Remove it from the bill first.`);
+                    return;
+                  }
                   const newStatus = programFormData.status === 'Completed' ? 'Pending' : 'Completed';
                   setProgramFormData({ ...programFormData, status: newStatus });
                 }}
-                disabled={loading}
+                disabled={loading || (editingProgram?.is_billed && programFormData.status === 'Completed')}
                 className="btn"
                 style={{
                   padding: '0.75rem 1.5rem',
                   fontSize: '0.95em',
                   fontWeight: '600',
-                  background: programFormData.status === 'Completed' ? '#ffc107' : '#28a745',
+                  background: (editingProgram?.is_billed && programFormData.status === 'Completed')
+                    ? '#ccc'
+                    : (programFormData.status === 'Completed' ? '#ffc107' : '#28a745'),
                   color: 'white',
                   border: 'none',
                   borderRadius: '4px',
-                  cursor: loading ? 'not-allowed' : 'pointer',
+                  cursor: (loading || (editingProgram?.is_billed && programFormData.status === 'Completed')) ? 'not-allowed' : 'pointer',
                   transition: 'all 0.2s',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                  opacity: (editingProgram?.is_billed && programFormData.status === 'Completed') ? 0.6 : 1
                 }}
-                onMouseOver={(e) => !loading && (e.target.style.transform = 'translateY(-1px)')}
+                onMouseOver={(e) => !loading && !(editingProgram?.is_billed && programFormData.status === 'Completed') && (e.target.style.transform = 'translateY(-1px)')}
                 onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
               >
                 {programFormData.status === 'Completed' ? <><Icons.Refresh size={16} /> Reopen Program</> : <><Icons.Check size={16} /> Mark as Complete</>}
@@ -2338,6 +2369,21 @@ const ImprovedDashboard = () => {
               />
             </div>
 
+            <div className="form-group">
+              <label>Challan No.</label>
+              <input
+                type="text"
+                name="challan_no"
+                value={programFormData.challan_no}
+                onChange={handleProgramChange}
+                disabled={loading || programFormData.status === 'Completed'}
+                placeholder="Optional"
+                maxLength="100"
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
             <div className="form-group">
               <label>Input Meters *</label>
               <input
@@ -2765,6 +2811,12 @@ const ImprovedDashboard = () => {
                   <label>Design Number:</label>
                   <strong>{selectedProgramForView.design_number}</strong>
                 </div>
+                {selectedProgramForView.challan_no && (
+                  <div className="detail-item">
+                    <label>Challan No.:</label>
+                    <strong>{selectedProgramForView.challan_no}</strong>
+                  </div>
+                )}
                 <div className="detail-item">
                   <label>Status:</label>
                   <span className={`badge badge-${selectedProgramForView.status === 'Completed' ? 'completed' : 'pending'}`}>

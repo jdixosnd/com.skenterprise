@@ -235,6 +235,14 @@ class ProcessProgram(models.Model):
 
     program_number = models.CharField(max_length=50, unique=True, db_index=True)
     design_number = models.CharField(max_length=100, db_index=True)
+    challan_no = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        unique=True,
+        db_index=True,
+        help_text="Challan number for this program (optional, must be unique)"
+    )
     design_photo = models.BinaryField(blank=True, null=True)
     design_photo_name = models.CharField(max_length=255, blank=True, null=True)
     input_meters = models.DecimalField(max_digits=10, decimal_places=2)
@@ -418,6 +426,15 @@ class ProcessProgram(models.Model):
         if lots:
             return lots[0].is_gstin_registered
         return None
+
+    def is_billed(self):
+        """Check if program is included in any non-scrapped bill"""
+        return self.bills.exclude(payment_status='Scrap').exists()
+
+    def get_bill_number(self):
+        """Get bill number if program is billed"""
+        bill = self.bills.exclude(payment_status='Scrap').first()
+        return bill.bill_number if bill else None
 
 
 class ProgramLotAllocation(models.Model):

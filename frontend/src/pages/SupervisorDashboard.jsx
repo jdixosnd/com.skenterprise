@@ -19,6 +19,7 @@ const SupervisorDashboard = () => {
     quality_type: '',
     total_meters: '',
     fiscal_year: new Date().getFullYear(),
+    is_gstin_registered: false,
     notes: '',
   });
 
@@ -59,6 +60,7 @@ const SupervisorDashboard = () => {
         quality_type: '',
         total_meters: '',
         fiscal_year: new Date().getFullYear(),
+        is_gstin_registered: false,
         notes: '',
       });
 
@@ -166,6 +168,21 @@ const SupervisorDashboard = () => {
                   disabled={loading}
                 />
               </div>
+            </div>
+
+            <div className="form-group">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={formData.is_gstin_registered || false}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    is_gstin_registered: e.target.checked
+                  })}
+                  disabled={loading}
+                />
+                <span>GSTIN Registered Transaction</span>
+              </label>
             </div>
 
             <div className="form-group">

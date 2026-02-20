@@ -165,13 +165,19 @@ const AnalyticsDashboard = () => {
 
     const loadCalendarData = async () => {
         const [programsRes, lotsRes, billsRes] = await Promise.all([
-            programsAPI.getAll({ page_size: 100 }),
-            inwardLotsAPI.getAll({ page_size: 100 }),
-            billsAPI.getAll({ page_size: 100 })
+            programsAPI.getAll({ page_size: 1000 }),
+            inwardLotsAPI.getAll({ page_size: 1000 }),
+            billsAPI.getAll({ page_size: 1000 })
         ]);
         setPrograms(programsRes.data.results || programsRes.data);
         setInwardLots(lotsRes.data.results || lotsRes.data);
         setBills(billsRes.data.results || billsRes.data);
+
+        console.log('Calendar Data Loaded:', {
+            programs: (programsRes.data.results || programsRes.data).length,
+            lots: (lotsRes.data.results || lotsRes.data).length,
+            bills: (billsRes.data.results || billsRes.data).length
+        });
     };
 
     const formatNumber = (num) => {

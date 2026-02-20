@@ -47,12 +47,15 @@ const BillDetailModal = ({ bill, onClose, onDownloadPDF }) => {
           {/* Programs Section */}
           <div className="bill-section">
             <h3>Programs ({bill.program_count})</h3>
-            <div className="table-container">
-              <table className="data-table">
+            <div className="table-container" style={{ overflowX: 'auto' }}>
+              <table className="data-table" style={{ minWidth: '800px' }}>
                 <thead>
                   <tr>
                     <th>Program No.</th>
                     <th>Design No.</th>
+                    <th>Challan No.</th>
+                    <th>Quality / Lot</th>
+                    <th>Input (m)</th>
                     <th>Output (m)</th>
                     <th>Rate (₹/m)</th>
                     <th>Amount (₹)</th>
@@ -60,18 +63,35 @@ const BillDetailModal = ({ bill, onClose, onDownloadPDF }) => {
                 </thead>
                 <tbody>
                   {bill.programs_detail && bill.programs_detail.length > 0 ? (
-                    bill.programs_detail.map(program => (
-                      <tr key={program.id}>
-                        <td>{program.program_number}</td>
-                        <td>{program.design_number}</td>
-                        <td>{parseFloat(program.output_meters || 0).toFixed(2)}m</td>
-                        <td>₹{parseFloat(program.rate_per_meter || 0).toFixed(2)}</td>
-                        <td>₹{parseFloat(program.total_amount || 0).toFixed(2)}</td>
-                      </tr>
-                    ))
+                    bill.programs_detail.map(program => {
+                      // Extract quality type and lot numbers from lot_allocations
+                      const qualityType = program.lot_allocations && program.lot_allocations.length > 0
+                        ? program.lot_allocations[0].quality_type
+                        : 'N/A';
+                      const lotNumbers = program.lot_allocations
+                        ? program.lot_allocations.map(alloc => alloc.lot_number).join(', ')
+                        : 'N/A';
+
+                      return (
+                        <tr key={program.id}>
+                          <td>{program.program_number}</td>
+                          <td>{program.design_number}</td>
+                          <td>{program.challan_no || '-'}</td>
+                          <td style={{ fontSize: '0.85em' }}>
+                            <strong>{qualityType}</strong>
+                            <br />
+                            <span style={{ color: '#666' }}>{lotNumbers}</span>
+                          </td>
+                          <td>{parseFloat(program.input_meters || 0).toFixed(2)}m</td>
+                          <td>{parseFloat(program.output_meters || 0).toFixed(2)}m</td>
+                          <td>₹{parseFloat(program.rate_per_meter || 0).toFixed(2)}</td>
+                          <td><strong>₹{parseFloat(program.total_amount || 0).toFixed(2)}</strong></td>
+                        </tr>
+                      );
+                    })
                   ) : (
                     <tr>
-                      <td colSpan="5" className="text-center">No program details available</td>
+                      <td colSpan="8" className="text-center">No program details available</td>
                     </tr>
                   )}
                 </tbody>

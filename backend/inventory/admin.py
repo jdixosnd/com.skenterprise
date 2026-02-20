@@ -106,7 +106,7 @@ class ProcessProgramResource(resources.ModelResource):
         model = ProcessProgram
         import_id_fields = ['program_number']
         fields = (
-            'program_number', 'design_number', 'design_photo_name',
+            'program_number', 'design_number', 'challan_no', 'design_photo_name',
             'input_meters', 'wastage_meters', 'output_meters', 'status',
             'rate_per_meter', 'tax_amount', 'created_at', 'updated_at',
             'completed_at', 'created_by', 'notes'
@@ -369,14 +369,14 @@ class InwardLotAdmin(ImportExportModelAdmin):
 class ProcessProgramAdmin(ImportExportModelAdmin):
     resource_class = ProcessProgramResource
     list_display = [
-        'program_number', 'design_number', 'photo_thumbnail',
+        'program_number', 'design_number', 'challan_no', 'photo_thumbnail',
         'input_meters', 'output_meters', 'wastage_display',
         'status', 'created_at'
     ]
     list_filter = [
         'status', 'created_at'
     ]
-    search_fields = ['program_number', 'design_number', 'notes']
+    search_fields = ['program_number', 'design_number', 'challan_no', 'notes']
     readonly_fields = [
         'program_number', 'wastage_meters', 'wastage_percentage',
         'total_amount', 'created_at', 'updated_at', 'completed_at', 'photo_preview'
@@ -386,7 +386,7 @@ class ProcessProgramAdmin(ImportExportModelAdmin):
 
     fieldsets = (
         ('Program Information', {
-            'fields': ('program_number', 'design_number', 'status')
+            'fields': ('program_number', 'design_number', 'challan_no', 'status')
         }),
         ('Design Photo', {
             'fields': ('design_photo_name', 'photo_preview'),

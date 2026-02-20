@@ -432,7 +432,7 @@
   letter-spacing: 0.01em;
 }
 
-.form-group input,
+.form-group input:not([type="checkbox"]),
 .form-group select,
 .form-group textarea {
   padding: 0.5rem 0.75rem;
@@ -445,7 +445,7 @@
   color: var(--text-primary);
 }
 
-.form-group input:focus,
+.form-group input:not([type="checkbox"]):focus,
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
@@ -453,7 +453,7 @@
   box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.1);
 }
 
-.form-group input:disabled,
+.form-group input:not([type="checkbox"]):disabled,
 .form-group select:disabled,
 .form-group textarea:disabled {
   background: var(--bg-muted);
@@ -469,12 +469,13 @@
   cursor: pointer;
   font-weight: 500;
   color: var(--text-primary);
-  margin-bottom: 0.5rem;
+  margin: 0;
+  padding: 0.5rem 0;
 }
 
 .checkbox-label input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   cursor: pointer;
   accent-color: var(--accent-primary);
   margin: 0;
@@ -483,6 +484,8 @@
 
 .checkbox-label span {
   user-select: none;
+  font-size: 0.95rem;
+  line-height: 1.4;
 }
 
 .help-text {

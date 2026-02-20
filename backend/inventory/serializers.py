@@ -89,11 +89,12 @@ class InwardLotSerializer(serializers.ModelSerializer):
 class ProgramLotAllocationSerializer(serializers.ModelSerializer):
     lot_number = serializers.CharField(source='lot.lot_number', read_only=True)
     lot_party = serializers.CharField(source='lot.party.name', read_only=True)
+    quality_type = serializers.CharField(source='lot.quality_type.name', read_only=True)
 
     class Meta:
         model = ProgramLotAllocation
         fields = [
-            'id', 'lot', 'lot_number', 'lot_party',
+            'id', 'lot', 'lot_number', 'lot_party', 'quality_type',
             'allocated_meters', 'created_at'
         ]
         read_only_fields = ['created_at']
@@ -135,7 +136,7 @@ class ProcessProgramSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProcessProgram
         fields = [
-            'id', 'program_number', 'design_number', 'design_photo_name',
+            'id', 'program_number', 'design_number', 'challan_no', 'design_photo_name',
             'design_photo_base64', 'input_meters', 'wastage_meters',
             'output_meters', 'wastage_percentage', 'status',
             'rate_per_meter', 'tax_amount', 'total_amount',
@@ -187,7 +188,7 @@ class ProcessProgramCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProcessProgram
         fields = [
-            'id', 'program_number', 'design_number', 'input_meters', 'output_meters',
+            'id', 'program_number', 'design_number', 'challan_no', 'input_meters', 'output_meters',
             'rate_per_meter', 'tax_amount', 'notes', 'status',
             'lot_allocations', 'design_photo_file', 'design_photo_name'
         ]
@@ -228,6 +229,23 @@ class ProcessProgramCreateSerializer(serializers.ModelSerializer):
                 })
 
         return data
+
+    def validate_challan_no(self, value):
+        """Validate challan number uniqueness"""
+        if value:
+            if self.instance:
+                # Updating existing program - exclude current from check
+                if ProcessProgram.objects.exclude(pk=self.instance.pk).filter(challan_no=value).exists():
+                    raise serializers.ValidationError(
+                        f"Challan number '{value}' is already in use by another program."
+                    )
+            else:
+                # Creating new program
+                if ProcessProgram.objects.filter(challan_no=value).exists():
+                    raise serializers.ValidationError(
+                        f"Challan number '{value}' is already in use."
+                    )
+        return value
 
     def create(self, validated_data):
         lot_allocations_data = validated_data.pop('lot_allocations', [])
