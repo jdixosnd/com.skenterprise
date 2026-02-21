@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage';
 import ImprovedDashboard from './pages/ImprovedDashboard';
 import BillsHistoryPage from './pages/BillsHistoryPage';
 import AnalyticsDashboard from './pages/AnalyticsDashboard';
+import PartyOverviewPage from './pages/PartyOverviewPage';
 import './index.css';
 
 // Protected Route Component
@@ -80,6 +81,15 @@ const AppRouter = () => {
         element={
           <ProtectedRoute>
             <AnalyticsDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/party-overview"
+        element={
+          <ProtectedRoute>
+            <PartyOverviewPage />
           </ProtectedRoute>
         }
       />

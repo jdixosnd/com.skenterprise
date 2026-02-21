@@ -64,7 +64,7 @@ class InwardLotSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'lot_number', 'party', 'party_name', 'quality_type', 'quality_name',
             'total_meters', 'current_balance', 'balance_percentage',
-            'inward_date', 'fiscal_year', 'is_gstin_registered', 'notes', 'created_at', 'updated_at'
+            'inward_date', 'fiscal_year', 'is_gstin_registered', 'lr_number', 'notes', 'created_at', 'updated_at'
         ]
         read_only_fields = ['lot_number', 'created_at', 'updated_at']
 

@@ -32,6 +32,7 @@ const Sidebar = ({ activePage, sidebarOpen, setSidebarOpen }) => {
 
     const menuItems = [
         { id: 'dashboard', path: '/analytics', icon: <Icons.Chart size={24} />, label: 'Dashboard', description: 'Analytics & Insights', isRoute: true },
+        { id: 'party-overview', path: '/party-overview', icon: <Icons.Party size={24} />, label: 'Party Balance', description: 'Material overview by party', isRoute: true },
         { id: 'inward', icon: <Icons.Download size={24} />, label: 'Inward Log', description: 'Record incoming stock', isRoute: false },
         { id: 'program', icon: <Icons.Package size={24} />, label: 'Program Entry', description: 'Processing jobs', isRoute: false },
         { id: 'billing', icon: <Icons.Billing size={24} />, label: 'Billing', description: 'Bills & Reports', isRoute: false },

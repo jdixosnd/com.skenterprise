@@ -23,6 +23,7 @@ const analyticsAPI = {
   // Party Analytics
   getPartyTopPerformers: () => api.get('/analytics/party/top-performers/'),
   getPartyPerformanceScorecard: () => api.get('/analytics/party/performance-scorecard/'),
+  getPartyBalanceOverview: (params) => api.get('/analytics/party/balance-overview/', { params }),
 
   // Billing Analytics
   getBillingPaymentAging: () => api.get('/analytics/billing/payment-aging/'),

@@ -17,6 +17,7 @@ import NotificationCenter from '../components/NotificationCenter';
 import Modal from '../components/Modal';
 import LedgerExportModal from '../components/LedgerExportModal';
 import CameraCapture from '../components/CameraCapture';
+import BillDateModal from '../components/BillDateModal';
 import { format } from 'date-fns';
 import { sortData, toggleSortDirection } from '../utils/sortUtils';
 import { Icons } from '../constants/icons';
@@ -53,6 +54,7 @@ const ImprovedDashboard = () => {
   const [selectedPartyForRates, setSelectedPartyForRates] = useState(null);
   const [partyCustomRates, setPartyCustomRates] = useState([]);
   const [inwardPartyRates, setInwardPartyRates] = useState([]);
+  const [showBillDateModal, setShowBillDateModal] = useState(false);
 
   // Notification states
   const [showNotifications, setShowNotifications] = useState(false);
@@ -76,6 +78,7 @@ const ImprovedDashboard = () => {
     total_meters: '',
     fiscal_year: new Date().getFullYear(),
     is_gstin_registered: false,
+    lr_number: '',
     notes: '',
   });
 
@@ -346,10 +349,6 @@ const ImprovedDashboard = () => {
       toast.showError('Please select a party');
       return false;
     }
-    if (!programFormData.design_number) {
-      toast.showError('Please enter design number');
-      return false;
-    }
     if (!programFormData.input_meters || parseFloat(programFormData.input_meters) <= 0) {
       toast.showError('Input meters must be greater than 0');
       return false;
@@ -467,6 +466,7 @@ const ImprovedDashboard = () => {
         total_meters: lot.total_meters,
         fiscal_year: lot.fiscal_year,
         is_gstin_registered: lot.is_gstin_registered || false,
+        lr_number: lot.lr_number || '',
         notes: lot.notes || '',
       });
     } else {
@@ -477,6 +477,7 @@ const ImprovedDashboard = () => {
         total_meters: '',
         fiscal_year: new Date().getFullYear(),
         is_gstin_registered: false,
+        lr_number: '',
         notes: '',
       });
     }
@@ -938,9 +939,14 @@ const ImprovedDashboard = () => {
     }
   };
 
-  const handleGenerateBill = async () => {
-    if (selectedPrograms.length === 0 || !selectedParty) {
-      toast.showError('Please select programs and a party');
+  const handleGenerateBill = () => {
+    if (selectedPrograms.length === 0) {
+      toast.showError('Please select programs to generate bill');
+      return;
+    }
+
+    if (!selectedParty) {
+      toast.showError('Please select a party');
       return;
     }
 
@@ -963,23 +969,38 @@ const ImprovedDashboard = () => {
       return;
     }
 
+    // Open modal after validation passes
+    setShowBillDateModal(true);
+  };
+
+  const handleConfirmBillGeneration = async (billDate) => {
     setLoading(true);
     try {
       const response = await billsAPI.generate({
         party: selectedParty,
         program_ids: selectedPrograms,
-        bill_date: new Date().toISOString().split('T')[0],
+        bill_date: billDate,
       });
+
+      // Extract bill number from response headers or use default
+      const billNumber = response.headers?.['x-bill-number'] || `Bill_${billDate}`;
 
       const blob = new Blob([response.data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `Bill_${new Date().toISOString().split('T')[0]}.pdf`;
+      link.download = `${billNumber}.pdf`;
+      document.body.appendChild(link);
       link.click();
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
 
-      toast.showSuccess('Bill generated successfully');
+      toast.showSuccess(`Bill generated successfully: ${billNumber}`);
+
+      // Close modal and refresh data
+      setShowBillDateModal(false);
       setSelectedPrograms([]);
+      loadBillingData();
     } catch (err) {
       // Handle validation errors from DRF
       let errorMessage = 'Failed to generate bill';
@@ -1231,6 +1252,9 @@ const ImprovedDashboard = () => {
                             <th onClick={() => handleSort('fiscal_year', lotsSortKey, lotsSortDirection, setLotsSortKey, setLotsSortDirection, lots, setLots)} className="sortable-header">
                               Fiscal Year {renderSortIcon('fiscal_year', lotsSortKey, lotsSortDirection)}
                             </th>
+                            <th onClick={() => handleSort('lr_number', lotsSortKey, lotsSortDirection, setLotsSortKey, setLotsSortDirection, lots, setLots)} className="sortable-header">
+                              LR Number {renderSortIcon('lr_number', lotsSortKey, lotsSortDirection)}
+                            </th>
                             <th onClick={() => handleSort('created_at', lotsSortKey, lotsSortDirection, setLotsSortKey, setLotsSortDirection, lots, setLots)} className="sortable-header">
                               Created {renderSortIcon('created_at', lotsSortKey, lotsSortDirection)}
                             </th>
@@ -1243,7 +1267,7 @@ const ImprovedDashboard = () => {
                         <tbody>
                           {paginatedLots.length === 0 ? (
                             <tr>
-                              <td colSpan="9" className="text-center">
+                              <td colSpan="10" className="text-center">
                                 No inward lots found. Click "Add New Lot" to create one.
                               </td>
                             </tr>
@@ -1261,6 +1285,7 @@ const ImprovedDashboard = () => {
                                   </span>
                                 </td>
                                 <td>{lot.fiscal_year}</td>
+                                <td>{lot.lr_number || '-'}</td>
                                 <td>{format(new Date(lot.created_at), 'dd MMM yyyy')}</td>
                                 <td>{format(new Date(lot.updated_at), 'dd MMM yyyy HH:mm')}</td>
                                 <td>
@@ -1319,6 +1344,10 @@ const ImprovedDashboard = () => {
                             <div className="data-card-row">
                               <span className="data-card-label">Fiscal Year</span>
                               <span className="data-card-value">{lot.fiscal_year}</span>
+                            </div>
+                            <div className="data-card-row">
+                              <span className="data-card-label">LR Number</span>
+                              <span className="data-card-value">{lot.lr_number || '-'}</span>
                             </div>
                             <div className="data-card-row">
                               <span className="data-card-label">Created</span>
@@ -2244,6 +2273,17 @@ const ImprovedDashboard = () => {
           </div>
 
           <div className="form-group">
+            <label>LR Number</label>
+            <input
+              type="text"
+              value={inwardFormData.lr_number}
+              onChange={(e) => setInwardFormData({ ...inwardFormData, lr_number: e.target.value })}
+              disabled={loading}
+              placeholder="Enter LR (Lorry Receipt) Number"
+            />
+          </div>
+
+          <div className="form-group">
             <label>Notes</label>
             <textarea
               value={inwardFormData.notes}
@@ -2358,14 +2398,14 @@ const ImprovedDashboard = () => {
 
           <div className="form-row">
             <div className="form-group">
-              <label>Design Number *</label>
+              <label>Design Number</label>
               <input
                 type="text"
                 name="design_number"
                 value={programFormData.design_number}
                 onChange={handleProgramChange}
-                required
                 disabled={loading || programFormData.status === 'Completed'}
+                placeholder="Optional"
               />
             </div>
 
@@ -2920,6 +2960,14 @@ const ImprovedDashboard = () => {
       <NotificationCenter
         isOpen={showNotifications}
         onClose={() => setShowNotifications(false)}
+      />
+
+      {/* Bill Date Selection Modal */}
+      <BillDateModal
+        isOpen={showBillDateModal}
+        onClose={() => setShowBillDateModal(false)}
+        onConfirm={handleConfirmBillGeneration}
+        loading={loading}
       />
     </div >
   );

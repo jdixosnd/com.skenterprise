@@ -180,6 +180,12 @@ class InwardLot(models.Model):
         default=False,
         help_text="Whether this lot is for a GSTIN-registered transaction"
     )
+    lr_number = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="LR (Lorry Receipt) Number - can be duplicated across lots"
+    )
     notes = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -234,7 +240,7 @@ class ProcessProgram(models.Model):
     ]
 
     program_number = models.CharField(max_length=50, unique=True, db_index=True)
-    design_number = models.CharField(max_length=100, db_index=True)
+    design_number = models.CharField(max_length=100, blank=True, null=True, db_index=True)
     challan_no = models.CharField(
         max_length=100,
         blank=True,

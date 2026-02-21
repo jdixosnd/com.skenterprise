@@ -8,7 +8,7 @@ from django.db.models.functions import TruncMonth, TruncDate, Coalesce
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from .models import InwardLot, ProcessProgram, Bill, Party, QualityType
+from .models import InwardLot, ProcessProgram, Bill, Party, QualityType, ProgramLotAllocation
 
 
 @api_view(['GET'])
@@ -543,6 +543,186 @@ def party_performance_scorecard(request):
     parties_data.sort(key=lambda x: x['revenue_30d'], reverse=True)
 
     return Response(parties_data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def party_balance_overview(request):
+    """
+    Get party balance overview with quality breakdown, duration summary,
+    lot details, and program consumption
+
+    Query params:
+    - party: Party ID (optional)
+    - quality_type: Quality Type ID (optional)
+    - start_date: Start date filter (optional)
+    - end_date: End date filter (optional)
+    """
+    from django.utils import timezone
+
+    # Get filter parameters
+    party_id = request.GET.get('party')
+    quality_type_id = request.GET.get('quality_type')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    # Base queryset
+    lots_queryset = InwardLot.objects.select_related('party', 'quality_type')
+
+    # Apply filters
+    if party_id:
+        lots_queryset = lots_queryset.filter(party_id=party_id)
+    if quality_type_id:
+        lots_queryset = lots_queryset.filter(quality_type_id=quality_type_id)
+    if start_date:
+        lots_queryset = lots_queryset.filter(inward_date__gte=start_date)
+    if end_date:
+        lots_queryset = lots_queryset.filter(inward_date__lte=end_date)
+
+    # Calculate summary totals
+    summary_stats = lots_queryset.aggregate(
+        total_parties=Count('party', distinct=True),
+        total_inward=Coalesce(Sum('total_meters'), Decimal('0')),
+        available_balance=Coalesce(Sum('current_balance'), Decimal('0'))
+    )
+
+    # Calculate consumed separately
+    total_consumed = float(summary_stats['total_inward']) - float(summary_stats['available_balance'])
+
+    summary = {
+        'total_parties': summary_stats['total_parties'],
+        'total_inward': float(summary_stats['total_inward']),
+        'total_consumed': total_consumed,
+        'available_balance': float(summary_stats['available_balance'])
+    }
+
+    # Get parties data
+    parties_data = []
+
+    # Get unique parties from filtered lots
+    party_ids = lots_queryset.values_list('party_id', flat=True).distinct()
+    parties = Party.objects.filter(id__in=party_ids)
+
+    now = timezone.now().date()
+
+    for party in parties:
+        party_lots = lots_queryset.filter(party=party)
+
+        # Quality-wise breakdown
+        quality_breakdown = party_lots.values(
+            quality_name=F('quality_type__name'),
+            quality_id=F('quality_type__id')
+        ).annotate(
+            lot_count=Count('id'),
+            total_inward=Coalesce(Sum('total_meters'), Decimal('0')),
+            current_balance=Coalesce(Sum('current_balance'), Decimal('0'))
+        ).order_by('-total_inward')
+
+        quality_list = []
+        for quality in quality_breakdown:
+            total_inward = float(quality['total_inward'])
+            current_balance = float(quality['current_balance'])
+            consumed = total_inward - current_balance
+            consumption_pct = (consumed / total_inward * 100) if total_inward > 0 else 0
+
+            quality_list.append({
+                'quality_name': quality['quality_name'],
+                'lot_count': quality['lot_count'],
+                'total_inward': total_inward,
+                'current_balance': current_balance,
+                'consumed': consumed,
+                'consumption_percentage': round(consumption_pct, 2)
+            })
+
+        # Duration summary (material age)
+        duration_summary = {
+            '0-30': {'count': 0, 'meters': 0},
+            '31-60': {'count': 0, 'meters': 0},
+            '61-90': {'count': 0, 'meters': 0},
+            '90+': {'count': 0, 'meters': 0}
+        }
+
+        for lot in party_lots:
+            if lot.current_balance > 0:
+                days_old = (now - lot.inward_date).days
+                balance = float(lot.current_balance)
+
+                if days_old <= 30:
+                    duration_summary['0-30']['count'] += 1
+                    duration_summary['0-30']['meters'] += balance
+                elif days_old <= 60:
+                    duration_summary['31-60']['count'] += 1
+                    duration_summary['31-60']['meters'] += balance
+                elif days_old <= 90:
+                    duration_summary['61-90']['count'] += 1
+                    duration_summary['61-90']['meters'] += balance
+                else:
+                    duration_summary['90+']['count'] += 1
+                    duration_summary['90+']['meters'] += balance
+
+        # Recent lots (last 20 with balance)
+        recent_lots = party_lots.order_by('-inward_date')[:20]
+        lots_list = []
+
+        for lot in recent_lots:
+            balance_pct = (float(lot.current_balance) / float(lot.total_meters) * 100) if lot.total_meters > 0 else 0
+            days_old = (now - lot.inward_date).days
+
+            lots_list.append({
+                'lot_number': lot.lot_number,
+                'quality_name': lot.quality_type.name,
+                'inward_date': lot.inward_date.strftime('%Y-%m-%d'),
+                'days_old': days_old,
+                'total_meters': float(lot.total_meters),
+                'current_balance': float(lot.current_balance),
+                'balance_percentage': round(balance_pct, 2)
+            })
+
+        # Program consumption (top 10 programs using party material)
+        programs = ProcessProgram.objects.filter(
+            programlotallocation__lot__party=party,
+            programlotallocation__lot__in=party_lots
+        ).distinct().order_by('-created_at')[:10]
+
+        programs_list = []
+        for program in programs:
+            efficiency_pct = (float(program.output_meters) / float(program.input_meters) * 100) if program.input_meters > 0 else 0
+
+            programs_list.append({
+                'program_number': program.program_number,
+                'design_number': program.design_number,
+                'status': program.status,
+                'input_meters': float(program.input_meters),
+                'output_meters': float(program.output_meters),
+                'wastage_meters': float(program.wastage_meters),
+                'efficiency_percentage': round(efficiency_pct, 2)
+            })
+
+        # Party summary
+        party_total_inward = sum(q['total_inward'] for q in quality_list)
+        party_current_balance = sum(q['current_balance'] for q in quality_list)
+        party_consumed = sum(q['consumed'] for q in quality_list)
+
+        parties_data.append({
+            'party_id': party.id,
+            'party_name': party.name,
+            'contact': party.contact or 'N/A',
+            'total_inward': party_total_inward,
+            'current_balance': party_current_balance,
+            'consumed': party_consumed,
+            'quality_breakdown': quality_list,
+            'duration_summary': duration_summary,
+            'recent_lots': lots_list,
+            'program_consumption': programs_list
+        })
+
+    # Sort parties by total inward descending
+    parties_data.sort(key=lambda x: x['total_inward'], reverse=True)
+
+    return Response({
+        'summary': summary,
+        'parties': parties_data
+    })
 
 
 @api_view(['GET'])

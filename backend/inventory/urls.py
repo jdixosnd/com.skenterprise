@@ -42,6 +42,7 @@ urlpatterns = [
     
     path('analytics/party/top-performers/', analytics.party_top_performers, name='analytics-party-top'),
     path('analytics/party/performance-scorecard/', analytics.party_performance_scorecard, name='analytics-party-scorecard'),
+    path('analytics/party/balance-overview/', analytics.party_balance_overview, name='analytics-party-balance-overview'),
 
     # Billing Analytics
     path('analytics/billing/payment-aging/', analytics.billing_payment_aging, name='analytics-billing-aging'),
