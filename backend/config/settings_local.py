@@ -172,6 +172,7 @@ REST_FRAMEWORK = {
 # CORS settings
 CORS_ALLOW_ALL_ORIGINS = True  # For development only
 CORS_ALLOW_CREDENTIALS = True
+CORS_EXPOSE_HEADERS = ['Content-Disposition']  # Allow frontend to read filename from header
 ALLOWED_HOSTS = ["*"]
 
 # CSRF settings for React frontend

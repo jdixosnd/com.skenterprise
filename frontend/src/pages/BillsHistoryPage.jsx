@@ -114,16 +114,27 @@ const BillsHistoryPage = () => {
     setSuccess('');
     try {
       const response = await billsAPI.getPDF(billId);
+
+      // Extract filename from Content-Disposition header
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = `${billNumber}.pdf`; // fallback
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+        if (filenameMatch && filenameMatch[1]) {
+          filename = filenameMatch[1].replace(/"/g, '');
+        }
+      }
+
       const blob = new Blob([response.data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `${billNumber}.pdf`);
+      link.setAttribute('download', filename);
       document.body.appendChild(link);
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      setSuccess(`Downloaded ${billNumber}.pdf`);
+      setSuccess(`Downloaded ${filename}`);
     } catch (err) {
       setError('Failed to download PDF');
       console.error(err);

@@ -392,8 +392,13 @@ class BillViewSet(viewsets.ModelViewSet):
         bill.pdf_file = pdf_content
         bill.save()
 
+        # Generate filename with party name and bill date
+        party_name = bill.party.name.replace(' ', '_')
+        bill_date = bill.bill_date.strftime('%Y-%m-%d')
+        filename = f"{party_name}_bill_{bill_date}.pdf"
+
         response = HttpResponse(pdf_content, content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="{bill.bill_number}.pdf"'
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
         response['Content-Length'] = len(pdf_content)
         response['X-Content-Type-Options'] = 'nosniff'
         response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
@@ -410,8 +415,13 @@ class BillViewSet(viewsets.ModelViewSet):
             bill.pdf_file = pdf_content
             bill.save()
 
+        # Generate filename with party name and bill date
+        party_name = bill.party.name.replace(' ', '_')
+        bill_date = bill.bill_date.strftime('%Y-%m-%d')
+        filename = f"{party_name}_bill_{bill_date}.pdf"
+
         response = HttpResponse(pdf_content, content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="{bill.bill_number}.pdf"'
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
         response['Content-Length'] = len(pdf_content)
         response['X-Content-Type-Options'] = 'nosniff'
         response['Cache-Control'] = 'no-cache, no-store, must-revalidate'

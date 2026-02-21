@@ -61,16 +61,10 @@ class PartyQualityRateResource(resources.ModelResource):
 
 
 class CompanyDetailResource(resources.ModelResource):
-    quality_type = Field(
-        column_name='quality_type',
-        attribute='quality_type',
-        widget=ForeignKeyWidget(QualityType, 'name')
-    )
-
     class Meta:
         model = CompanyDetail
         import_id_fields = ['id']
-        fields = ('id', 'name', 'address', 'phone', 'email', 'quality_type', 'gst_number', 'created_at', 'updated_at')
+        fields = ('id', 'name', 'address', 'phone', 'email', 'gst_number', 'created_at', 'updated_at')
         exclude = ('logo',)  # Exclude binary fields
 
 
@@ -254,15 +248,13 @@ class QualityTypeAdmin(ImportExportModelAdmin):
 @admin.register(CompanyDetail)
 class CompanyDetailAdmin(ImportExportModelAdmin):
     resource_class = CompanyDetailResource
-    list_display = ['name', 'quality_type', 'phone', 'email', 'gst_number', 'has_logo']
-    list_filter = ['quality_type']
+    list_display = ['name', 'phone', 'email', 'gst_number', 'has_logo']
     search_fields = ['name', 'email', 'gst_number']
     readonly_fields = ['created_at', 'updated_at']
-    autocomplete_fields = ['quality_type']
-    
+
     fieldsets = (
         ('Company Information', {
-            'fields': ('name', 'quality_type', 'address')
+            'fields': ('name', 'address')
         }),
         ('Contact Details', {
             'fields': ('phone', 'email')
@@ -275,7 +267,7 @@ class CompanyDetailAdmin(ImportExportModelAdmin):
             'classes': ('collapse',)
         }),
     )
-    
+
     def has_logo(self, obj):
         return bool(obj.logo)
     has_logo.boolean = True
@@ -651,15 +643,21 @@ class BillAdmin(ImportExportModelAdmin):
             return
 
         bill = queryset.first()
+
+        # Generate filename with party name and bill date
+        party_name = bill.party.name.replace(' ', '_')
+        bill_date = bill.bill_date.strftime('%Y-%m-%d')
+        filename = f"{party_name}_bill_{bill_date}.pdf"
+
         if bill.pdf_file:
             response = HttpResponse(bytes(bill.pdf_file), content_type='application/pdf')
-            response['Content-Disposition'] = f'attachment; filename="{bill.bill_number}.pdf"'
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
             return response
         else:
             from .reports import generate_bill_pdf
             pdf_content = generate_bill_pdf(bill)
             response = HttpResponse(pdf_content, content_type='application/pdf')
-            response['Content-Disposition'] = f'attachment; filename="{bill.bill_number}.pdf"'
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
             return response
 
     download_pdf.short_description = "Download PDF"

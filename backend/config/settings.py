@@ -194,6 +194,7 @@ CSRF_COOKIE_DOMAIN = None
 CORS_ALLOWED_ORIGINS = ["https://skenterprise.cloud"]
 CSRF_TRUSTED_ORIGINS = ["https://skenterprise.cloud"]
 CORS_ALLOW_CREDENTIALS = True
+CORS_EXPOSE_HEADERS = ['Content-Disposition']  # Allow frontend to read filename from header
 
 # Session Configuration
 SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds

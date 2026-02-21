@@ -89,7 +89,7 @@ def generate_bill_pdf(bill):
         fontName='Helvetica-Bold'
     )
 
-    # Get company details based on first program's quality type
+    # Get company details
     first_program = bill.programs.first()
     company_detail = None
     company_logo_path = None
@@ -98,14 +98,14 @@ def generate_bill_pdf(bill):
     if first_program:
         lots = first_program.get_lots()
         if lots:
-            quality_type = lots[0].quality_type
             is_gstin_bill = lots[0].is_gstin_registered
-            try:
-                company_detail = CompanyDetail.objects.get(quality_type=quality_type)
-                if company_detail.logo:
-                    company_logo_path = company_detail.logo.path
-            except CompanyDetail.DoesNotExist:
-                pass
+
+    try:
+        company_detail = CompanyDetail.objects.first()
+        if company_detail and company_detail.logo:
+            company_logo_path = company_detail.logo.path
+    except CompanyDetail.DoesNotExist:
+        pass
     
     # Use company detail if available, otherwise fallback to SystemConfig
     if company_detail:

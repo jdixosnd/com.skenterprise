@@ -132,22 +132,16 @@ class QualityType(models.Model):
 
 
 class CompanyDetail(models.Model):
-    """Company details for invoice generation, with quality-type-specific GST"""
+    """Company details for invoice generation"""
     name = models.CharField(max_length=200)
     address = models.TextField()
     phone = models.CharField(max_length=20)
     email = models.EmailField()
-    quality_type = models.OneToOneField(
-        QualityType,
-        on_delete=models.CASCADE,
-        related_name='company_detail',
-        help_text="Quality type for which this company detail applies"
-    )
     gst_number = models.CharField(
         max_length=15,
         blank=True,
         null=True,
-        help_text="GSTIN - leave blank if not applicable for this quality type"
+        help_text="GSTIN - leave blank if not applicable"
     )
     logo = models.ImageField(
         upload_to='company_logos/',
@@ -161,10 +155,9 @@ class CompanyDetail(models.Model):
     class Meta:
         verbose_name = "Company Detail"
         verbose_name_plural = "Company Details"
-        ordering = ['quality_type__name']
 
     def __str__(self):
-        return f"{self.name} - {self.quality_type.name}"
+        return self.name
 
 
 

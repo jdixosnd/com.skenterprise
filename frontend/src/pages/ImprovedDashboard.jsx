@@ -982,20 +982,27 @@ const ImprovedDashboard = () => {
         bill_date: billDate,
       });
 
-      // Extract bill number from response headers or use default
-      const billNumber = response.headers?.['x-bill-number'] || `Bill_${billDate}`;
+      // Extract filename from Content-Disposition header
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = `Bill_${billDate}.pdf`; // fallback
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+        if (filenameMatch && filenameMatch[1]) {
+          filename = filenameMatch[1].replace(/"/g, '');
+        }
+      }
 
       const blob = new Blob([response.data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${billNumber}.pdf`;
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       link.parentNode.removeChild(link);
       window.URL.revokeObjectURL(url);
 
-      toast.showSuccess(`Bill generated successfully: ${billNumber}`);
+      toast.showSuccess(`Bill generated successfully: ${filename}`);
 
       // Close modal and refresh data
       setShowBillDateModal(false);
