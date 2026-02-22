@@ -678,7 +678,7 @@ const AnalyticsDashboard = () => {
                                     <BarChart data={topParties} layout="vertical">
                                         <CartesianGrid strokeDasharray="3 3" />
                                         <XAxis type="number" tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}k`} />
-                                        <YAxis dataKey="party_name" type="category" width={150} />
+                                        <YAxis dataKey="party_name" type="category" width={90} tick={{ fontSize: 11 }} tickFormatter={(name) => name.length > 14 ? name.slice(0, 13) + '…' : name} />
                                         <Tooltip formatter={(value) => formatCurrency(value)} />
                                         <Bar dataKey="total_revenue" fill="#374151" name="Revenue" />
                                     </BarChart>
