@@ -20,6 +20,7 @@ const COLORS = ['#374151', '#6b7280', '#065f46', '#78350f', '#1e3a8a', '#7f1d1d'
 const AnalyticsDashboard = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
+    const isMobile = window.innerWidth <= 768;
     const [sidebarOpen, setSidebarOpen] = useState(() => {
         // Check localStorage for sidebar state
         const saved = localStorage.getItem('sidebarOpen');
@@ -678,7 +679,7 @@ const AnalyticsDashboard = () => {
                                     <BarChart data={topParties} layout="vertical">
                                         <CartesianGrid strokeDasharray="3 3" />
                                         <XAxis type="number" tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}k`} />
-                                        <YAxis dataKey="party_name" type="category" width={90} tick={{ fontSize: 11 }} tickFormatter={(name) => name.length > 14 ? name.slice(0, 13) + '…' : name} />
+                                        <YAxis dataKey="party_name" type="category" width={isMobile ? 70 : 150} tick={isMobile ? { fontSize: 10 } : undefined} tickFormatter={(name) => isMobile && name.length > 9 ? name.slice(0, 8) + '…' : name} />
                                         <Tooltip formatter={(value) => formatCurrency(value)} />
                                         <Bar dataKey="total_revenue" fill="#374151" name="Revenue" />
                                     </BarChart>
