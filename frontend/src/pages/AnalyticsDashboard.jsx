@@ -255,9 +255,9 @@ const AnalyticsDashboard = () => {
                         </div>
                         <h1>Dashboard</h1>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div className="header-actions">
                         <button className="btn btn-refresh" onClick={loadData} disabled={loading}>
-                            <Icons.Refresh size={16} /> Refresh
+                            <Icons.Refresh size={16} /> <span className="btn-label">Refresh</span>
                         </button>
                         <button
                             onClick={() => setShowNotifications(true)}
@@ -298,13 +298,13 @@ const AnalyticsDashboard = () => {
                         className={`tab-btn ${activeTab === 'party' ? 'active' : ''}`}
                         onClick={() => setActiveTab('party')}
                     >
-                        <Icons.Party size={20} /> Party Performance
+                        <Icons.Party size={20} /> Party KPIs
                     </button>
                     <button
                         className={`tab-btn ${activeTab === 'calendar' ? 'active' : ''}`}
                         onClick={() => setActiveTab('calendar')}
                     >
-                        <Icons.Calendar size={20} /> Calendar View
+                        <Icons.Calendar size={20} /> Calendar
                     </button>
                 </div>
 
@@ -346,41 +346,46 @@ const AnalyticsDashboard = () => {
                             {/* Balance Distribution */}
                             <div className="chart-card">
                                 <h3>Balance Distribution</h3>
-                                <ResponsiveContainer width="100%" height={300}>
-                                    <PieChart>
-                                        <Pie
-                                            data={balanceDistribution}
-                                            cx="50%"
-                                            cy="50%"
-                                            labelLine={false}
-                                            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                                            outerRadius={80}
-                                            fill="#374151"
-                                            dataKey="value"
-                                        >
-                                            {balanceDistribution.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={entry.color} />
-                                            ))}
-                                        </Pie>
-                                        <Tooltip />
-                                    </PieChart>
-                                </ResponsiveContainer>
+                                <div className="chart-container chart-container-pie">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie
+                                                data={balanceDistribution}
+                                                cx="50%"
+                                                cy="50%"
+                                                labelLine={false}
+                                                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                                                innerRadius="35%"
+                                                outerRadius="70%"
+                                                fill="#374151"
+                                                dataKey="value"
+                                            >
+                                                {balanceDistribution.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={entry.color} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                </div>
                             </div>
 
                             {/* Stock by Quality */}
                             <div className="chart-card">
                                 <h3>Stock by Quality Type</h3>
-                                <ResponsiveContainer width="100%" height={300}>
-                                    <BarChart data={stockByQuality}>
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="quality_name" />
-                                        <YAxis />
-                                        <Tooltip formatter={(value) => `${formatNumber(value)} m`} />
-                                        <Legend />
-                                        <Bar dataKey="total_meters" fill="#374151" name="Total" />
-                                        <Bar dataKey="available_meters" fill="#065f46" name="Available" />
-                                    </BarChart>
-                                </ResponsiveContainer>
+                                <div className="chart-container chart-container-bar">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={stockByQuality}>
+                                            <CartesianGrid strokeDasharray="3 3" />
+                                            <XAxis dataKey="quality_name" />
+                                            <YAxis />
+                                            <Tooltip formatter={(value) => `${formatNumber(value)} m`} />
+                                            <Legend />
+                                            <Bar dataKey="total_meters" fill="#374151" name="Total" />
+                                            <Bar dataKey="available_meters" fill="#065f46" name="Available" />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
                             </div>
                         </div>
 
@@ -462,16 +467,18 @@ const AnalyticsDashboard = () => {
                             {/* Wastage Trend */}
                             <div className="chart-card chart-full">
                                 <h3>Wastage Trend (Last 12 Months)</h3>
-                                <ResponsiveContainer width="100%" height={300}>
-                                    <LineChart data={wastageTrend}>
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="month" />
-                                        <YAxis label={{ value: 'Wastage %', angle: -90, position: 'insideLeft' }} />
-                                        <Tooltip />
-                                        <Legend />
-                                        <Line type="monotone" dataKey="wastage_percent" stroke="#7f1d1d" name="Wastage %" />
-                                    </LineChart>
-                                </ResponsiveContainer>
+                                <div className="chart-container chart-container-bar">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <LineChart data={wastageTrend}>
+                                            <CartesianGrid strokeDasharray="3 3" />
+                                            <XAxis dataKey="month" />
+                                            <YAxis label={{ value: 'Wastage %', angle: -90, position: 'insideLeft' }} />
+                                            <Tooltip />
+                                            <Legend />
+                                            <Line type="monotone" dataKey="wastage_percent" stroke="#7f1d1d" name="Wastage %" />
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                </div>
                             </div>
                         </div>
 
@@ -512,7 +519,7 @@ const AnalyticsDashboard = () => {
 
                         {/* High Wastage Programs */}
                         <div className="table-card">
-                            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Icons.AlertTriangle size={20} style={{ color: 'var(--status-warning)' }} /> Top High Wastage Programs</h3>
+                            <h3> Top High Wastage Programs</h3>
                             <div className="table-scroll">
                                 <table className="analytics-table">
                                     <thead>
@@ -586,16 +593,18 @@ const AnalyticsDashboard = () => {
                             {/* Revenue Trend */}
                             <div className="chart-card chart-full">
                                 <h3>Revenue Trend (Last 12 Months)</h3>
-                                <ResponsiveContainer width="100%" height={300}>
-                                    <AreaChart data={revenueTrend}>
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="month" />
-                                        <YAxis tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}k`} />
-                                        <Tooltip formatter={(value) => formatCurrency(value)} />
-                                        <Legend />
-                                        <Area type="monotone" dataKey="total_revenue" stroke="#374151" fill="#374151" name="Revenue" />
-                                    </AreaChart>
-                                </ResponsiveContainer>
+                                <div className="chart-container chart-container-bar">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <AreaChart data={revenueTrend}>
+                                            <CartesianGrid strokeDasharray="3 3" />
+                                            <XAxis dataKey="month" />
+                                            <YAxis tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}k`} />
+                                            <Tooltip formatter={(value) => formatCurrency(value)} />
+                                            <Legend />
+                                            <Area type="monotone" dataKey="total_revenue" stroke="#374151" fill="#374151" name="Revenue" />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                </div>
                             </div>
                         </div>
 
@@ -603,13 +612,14 @@ const AnalyticsDashboard = () => {
                             {/* Revenue by Quality */}
                             <div className="chart-card">
                                 <h3>Revenue by Quality Type</h3>
-                                <ResponsiveContainer width="100%" height={300}>
-                                    <PieChart>
-                                        <Pie
-                                            data={revenueByQuality}
-                                            cx="50%"
-                                            cy="50%"
-                                            labelLine={false}
+                                <div className="chart-container chart-container-pie">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie
+                                                data={revenueByQuality}
+                                                cx="50%"
+                                                cy="50%"
+                                                labelLine={false}
                                             label={({ quality_name, percent }) => `${quality_name}: ${(percent * 100).toFixed(0)}%`}
                                             outerRadius={80}
                                             fill="#374151"
@@ -620,9 +630,10 @@ const AnalyticsDashboard = () => {
                                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                             ))}
                                         </Pie>
-                                        <Tooltip formatter={(value) => formatCurrency(value)} />
-                                    </PieChart>
-                                </ResponsiveContainer>
+                                            <Tooltip formatter={(value) => formatCurrency(value)} />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                </div>
                             </div>
 
                             {/* Recent Bills Table */}
@@ -662,15 +673,17 @@ const AnalyticsDashboard = () => {
                         {/* Top Parties Chart */}
                         <div className="chart-card chart-full">
                             <h3>Top 10 Parties by Revenue</h3>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={topParties} layout="vertical">
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis type="number" tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}k`} />
-                                    <YAxis dataKey="party_name" type="category" width={150} />
-                                    <Tooltip formatter={(value) => formatCurrency(value)} />
-                                    <Bar dataKey="total_revenue" fill="#374151" name="Revenue" />
-                                </BarChart>
-                            </ResponsiveContainer>
+                            <div className="chart-container chart-container-bar">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={topParties} layout="vertical">
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis type="number" tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}k`} />
+                                        <YAxis dataKey="party_name" type="category" width={150} />
+                                        <Tooltip formatter={(value) => formatCurrency(value)} />
+                                        <Bar dataKey="total_revenue" fill="#374151" name="Revenue" />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
                         </div>
 
                         {/* Party Scorecard */}

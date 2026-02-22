@@ -1311,8 +1311,10 @@ const ImprovedDashboard = () => {
                       </table>
                     </div>
 
-                    {/* Pagination Controls */}
-                    {renderPaginationControls(lotsCurrentPage, setLotsCurrentPage, sortedLots.length, lotsPerPage)}
+                    {/* Pagination Controls - Desktop (above mobile cards) */}
+                    <div className="pagination-desktop">
+                      {renderPaginationControls(lotsCurrentPage, setLotsCurrentPage, sortedLots.length, lotsPerPage)}
+                    </div>
 
                     {/* Mobile Card View */}
                     <div className="card-view">
@@ -1375,6 +1377,11 @@ const ImprovedDashboard = () => {
                           </div>
                         ))
                       )}
+                    </div>
+
+                    {/* Pagination Controls - Mobile (below cards) */}
+                    <div className="pagination-mobile">
+                      {renderPaginationControls(lotsCurrentPage, setLotsCurrentPage, sortedLots.length, lotsPerPage)}
                     </div>
                   </div>
                 </div>
@@ -1471,8 +1478,10 @@ const ImprovedDashboard = () => {
                       </table>
                     </div>
 
-                    {/* Pagination Controls */}
-                    {renderPaginationControls(programsCurrentPage, setProgramsCurrentPage, sortedPrograms.length, programsPerPage)}
+                    {/* Pagination Controls - Desktop */}
+                    <div className="pagination-desktop">
+                      {renderPaginationControls(programsCurrentPage, setProgramsCurrentPage, sortedPrograms.length, programsPerPage)}
+                    </div>
 
                     {/* Mobile Card View */}
                     <div className="card-view">
@@ -1536,6 +1545,11 @@ const ImprovedDashboard = () => {
                           </div>
                         ))
                       )}
+                    </div>
+
+                    {/* Pagination Controls - Mobile */}
+                    <div className="pagination-mobile">
+                      {renderPaginationControls(programsCurrentPage, setProgramsCurrentPage, sortedPrograms.length, programsPerPage)}
                     </div>
                   </div>
                 </div>
@@ -1789,8 +1803,10 @@ const ImprovedDashboard = () => {
                       </table>
                     </div>
 
-                    {/* Pagination Controls */}
-                    {renderPaginationControls(billingCurrentPage, setBillingCurrentPage, filteredPrograms.length, billingPerPage)}
+                    {/* Pagination Controls - Desktop */}
+                    <div className="pagination-desktop">
+                      {renderPaginationControls(billingCurrentPage, setBillingCurrentPage, filteredPrograms.length, billingPerPage)}
+                    </div>
 
                     {/* Mobile Card View */}
                     <div className="card-view">
@@ -1912,6 +1928,11 @@ const ImprovedDashboard = () => {
                         ))
                       )}
                     </div>
+
+                    {/* Pagination Controls - Mobile */}
+                    <div className="pagination-mobile">
+                      {renderPaginationControls(billingCurrentPage, setBillingCurrentPage, filteredPrograms.length, billingPerPage)}
+                    </div>
                   </div>
                 </div>
               </>
@@ -1996,8 +2017,10 @@ const ImprovedDashboard = () => {
                       </table>
                     </div>
 
-                    {/* Pagination Controls */}
-                    {renderPaginationControls(partiesCurrentPage, setPartiesCurrentPage, sortedParties.length, partiesPerPage)}
+                    {/* Pagination Controls - Desktop */}
+                    <div className="pagination-desktop">
+                      {renderPaginationControls(partiesCurrentPage, setPartiesCurrentPage, sortedParties.length, partiesPerPage)}
+                    </div>
 
                     {/* Mobile Card View */}
                     <div className="card-view">
@@ -2054,6 +2077,11 @@ const ImprovedDashboard = () => {
                           </div>
                         ))
                       )}
+                    </div>
+
+                    {/* Pagination Controls - Mobile */}
+                    <div className="pagination-mobile">
+                      {renderPaginationControls(partiesCurrentPage, setPartiesCurrentPage, sortedParties.length, partiesPerPage)}
                     </div>
                   </div>
                 </div>
@@ -2127,8 +2155,10 @@ const ImprovedDashboard = () => {
                       </table>
                     </div>
 
-                    {/* Pagination Controls */}
-                    {renderPaginationControls(qualitiesCurrentPage, setQualitiesCurrentPage, sortedQualities.length, qualitiesPerPage)}
+                    {/* Pagination Controls - Desktop */}
+                    <div className="pagination-desktop">
+                      {renderPaginationControls(qualitiesCurrentPage, setQualitiesCurrentPage, sortedQualities.length, qualitiesPerPage)}
+                    </div>
 
                     {/* Mobile Card View */}
                     <div className="card-view">
@@ -2174,6 +2204,11 @@ const ImprovedDashboard = () => {
                           </div>
                         ))
                       )}
+                    </div>
+
+                    {/* Pagination Controls - Mobile */}
+                    <div className="pagination-mobile">
+                      {renderPaginationControls(qualitiesCurrentPage, setQualitiesCurrentPage, sortedQualities.length, qualitiesPerPage)}
                     </div>
                   </div>
                 </div>

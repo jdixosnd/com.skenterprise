@@ -456,13 +456,64 @@
     padding-bottom: calc(1rem + env(safe-area-inset-bottom) + 100px);
   }
 
+  .analytics-header {
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem 0.75rem 3.5rem !important;
+    align-items: center !important;
+  }
+
+  .header-icon {
+    display: none !important;
+  }
+
+  .header-left {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .analytics-header h1 {
+    font-size: 0.95rem !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .header-actions {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    width: auto !important;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  .header-actions .btn-icon,
+  .header-actions .notification-bell {
+    width: auto !important;
+    flex-shrink: 0;
+  }
+
   .bills-header h1 {
     font-size: 1.5rem;
   }
 
   .bills-subtitle {
-    font-size: 0.875rem;
+    font-size: 0.7rem !important;
   }
+
+  .card-title {
+    font-size: 0.85rem !important;
+  }
+
+  .bill-detail-label,
+  .filter-label {
+    font-size: 0.7rem !important;
+  }
+
+  /* Tables scroll within their wrappers */
 
   /* Filters should stack vertically */
   .filters-row {

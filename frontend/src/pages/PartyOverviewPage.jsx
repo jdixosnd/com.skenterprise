@@ -21,6 +21,7 @@ const PartyOverviewPage = () => {
   });
 
   // State management
+  const [filtersOpen, setFiltersOpen] = useState(() => window.innerWidth >= 768);
   const [filters, setFilters] = useState({
     party: '',
     quality_type: '',
@@ -183,7 +184,7 @@ const PartyOverviewPage = () => {
         onNotificationUpdate={(count) => setUnreadCount(count)}
       />
 
-      <div className="main-content-area" style={{ padding: '2rem', minHeight: '100%', background: 'var(--bg-main)' }}>
+      <div className="main-content-area party-page-content" style={{ minHeight: '100%', background: 'var(--bg-main)' }}>
         {/* Header */}
         <div className="analytics-header">
           <div className="header-left">
@@ -223,8 +224,16 @@ const PartyOverviewPage = () => {
 
         {/* Filters Card */}
         <div className="card filters-card">
-          <h3 className="card-title">Filters</h3>
-          <div className="filters-row">
+          <h3
+            className="card-title filters-toggle"
+            onClick={() => setFiltersOpen(!filtersOpen)}
+          >
+            Filters
+            <span className={`toggle-icon ${filtersOpen ? 'open' : ''}`}>
+              <Icons.ChevronRight size={16} />
+            </span>
+          </h3>
+          <div className={`filters-row ${filtersOpen ? '' : 'filters-collapsed'}`}>
             <div className="filter-group">
               <label>Party</label>
               <select
@@ -424,7 +433,8 @@ const PartyOverviewPage = () => {
                             {/* Quality Breakdown */}
                             <div className="detail-section">
                               <h5>Quality-wise Breakdown</h5>
-                              <div className="table-scroll">
+                              {/* Desktop table */}
+                              <div className="table-scroll table-responsive">
                                 <table className="data-table">
                                   <thead>
                                     <tr>
@@ -453,6 +463,41 @@ const PartyOverviewPage = () => {
                                     ))}
                                   </tbody>
                                 </table>
+                              </div>
+                              {/* Mobile card view */}
+                              <div className="card-view">
+                                {party.quality_breakdown.map((quality, idx) => (
+                                  <div key={idx} className="data-card">
+                                    <div className="data-card-row">
+                                      <span className="data-card-label">Quality Type</span>
+                                      <strong className="data-card-value">{quality.quality_name}</strong>
+                                    </div>
+                                    <div className="data-card-row">
+                                      <span className="data-card-label">Lot Count</span>
+                                      <span className="data-card-value">{quality.lot_count}</span>
+                                    </div>
+                                    <div className="data-card-row">
+                                      <span className="data-card-label">Total Inward</span>
+                                      <span className="data-card-value">{formatNumber(quality.total_inward)} m</span>
+                                    </div>
+                                    <div className="data-card-row">
+                                      <span className="data-card-label">Balance</span>
+                                      <span className="data-card-value">{formatNumber(quality.current_balance)} m</span>
+                                    </div>
+                                    <div className="data-card-row">
+                                      <span className="data-card-label">Consumed</span>
+                                      <span className="data-card-value">{formatNumber(quality.consumed)} m</span>
+                                    </div>
+                                    <div className="data-card-row">
+                                      <span className="data-card-label">Consumption %</span>
+                                      <span className="data-card-value">
+                                        <span className={`badge ${getConsumptionBadgeClass(quality.consumption_percentage)}`}>
+                                          {quality.consumption_percentage.toFixed(1)}%
+                                        </span>
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))}
                               </div>
                             </div>
 
@@ -486,7 +531,8 @@ const PartyOverviewPage = () => {
                             {/* Recent Lots */}
                             <div className="detail-section">
                               <h5>Recent Lots (Last 20)</h5>
-                              <div className="table-scroll">
+                              {/* Desktop table */}
+                              <div className="table-scroll table-responsive">
                                 <table className="data-table">
                                   <thead>
                                     <tr>
@@ -522,12 +568,52 @@ const PartyOverviewPage = () => {
                                   </tbody>
                                 </table>
                               </div>
+                              {/* Mobile card view */}
+                              <div className="card-view">
+                                {party.recent_lots.length === 0 ? (
+                                  <div className="text-center" style={{ padding: '1rem' }}>No lots found</div>
+                                ) : (
+                                  party.recent_lots.map((lot, idx) => (
+                                    <div key={idx} className="data-card">
+                                      <div className="data-card-row">
+                                        <span className="data-card-label">Lot Number</span>
+                                        <strong className="data-card-value">{lot.lot_number}</strong>
+                                      </div>
+                                      <div className="data-card-row">
+                                        <span className="data-card-label">Quality</span>
+                                        <span className="data-card-value">{lot.quality_name}</span>
+                                      </div>
+                                      <div className="data-card-row">
+                                        <span className="data-card-label">Inward Date</span>
+                                        <span className="data-card-value">{lot.inward_date}</span>
+                                      </div>
+                                      <div className="data-card-row">
+                                        <span className="data-card-label">Days Old</span>
+                                        <span className="data-card-value">{lot.days_old}</span>
+                                      </div>
+                                      <div className="data-card-row">
+                                        <span className="data-card-label">Balance</span>
+                                        <span className="data-card-value">{formatNumber(lot.current_balance)} m</span>
+                                      </div>
+                                      <div className="data-card-row">
+                                        <span className="data-card-label">Balance %</span>
+                                        <span className="data-card-value">
+                                          <span className={`badge ${getConsumptionBadgeClass(lot.balance_percentage)}`}>
+                                            {lot.balance_percentage.toFixed(1)}%
+                                          </span>
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))
+                                )}
+                              </div>
                             </div>
 
                             {/* Program Consumption */}
                             <div className="detail-section">
                               <h5>Program Consumption (Top 10)</h5>
-                              <div className="table-scroll">
+                              {/* Desktop table */}
+                              <div className="table-scroll table-responsive">
                                 <table className="data-table">
                                   <thead>
                                     <tr>
@@ -567,6 +653,49 @@ const PartyOverviewPage = () => {
                                   </tbody>
                                 </table>
                               </div>
+                              {/* Mobile card view */}
+                              <div className="card-view">
+                                {party.program_consumption.length === 0 ? (
+                                  <div className="text-center" style={{ padding: '1rem' }}>No programs found</div>
+                                ) : (
+                                  party.program_consumption.map((program, idx) => (
+                                    <div key={idx} className="data-card">
+                                      <div className="data-card-row">
+                                        <span className="data-card-label">Program No.</span>
+                                        <strong className="data-card-value">{program.program_number}</strong>
+                                      </div>
+                                      <div className="data-card-row">
+                                        <span className="data-card-label">Design No.</span>
+                                        <span className="data-card-value">{program.design_number}</span>
+                                      </div>
+                                      <div className="data-card-row">
+                                        <span className="data-card-label">Status</span>
+                                        <span className="data-card-value">
+                                          <span className={`badge ${program.status === 'Completed' ? 'badge-success' : 'badge-warning'}`}>
+                                            {program.status}
+                                          </span>
+                                        </span>
+                                      </div>
+                                      <div className="data-card-row">
+                                        <span className="data-card-label">Input (m)</span>
+                                        <span className="data-card-value">{formatNumber(program.input_meters)}</span>
+                                      </div>
+                                      <div className="data-card-row">
+                                        <span className="data-card-label">Output (m)</span>
+                                        <span className="data-card-value">{formatNumber(program.output_meters)}</span>
+                                      </div>
+                                      <div className="data-card-row">
+                                        <span className="data-card-label">Efficiency %</span>
+                                        <span className="data-card-value">
+                                          <span className={`badge ${program.efficiency_percentage >= 90 ? 'badge-success' : program.efficiency_percentage >= 75 ? 'badge-warning' : 'badge-danger'}`}>
+                                            {program.efficiency_percentage.toFixed(1)}%
+                                          </span>
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))
+                                )}
+                              </div>
                             </div>
                           </div>
                         )}
@@ -576,25 +705,26 @@ const PartyOverviewPage = () => {
 
                   {/* Pagination */}
                   {totalPages > 1 && (
-                    <div className="pagination-controls">
-                      <button
-                        onClick={() => goToPage(currentPage - 1)}
-                        disabled={currentPage === 1}
-                        className="btn btn-secondary"
-                      >
-                        Previous
-                      </button>
-                      <span className="pagination-info">
-                        Page {currentPage} of {totalPages}
-                      </span>
-                      <button
-                        onClick={() => goToPage(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                        className="btn btn-secondary"
-                      >
-                        Next
-                      </button>
-                    </div>
+                    <>
+                      <div className="pagination-desktop">
+                        <button onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1} className="btn btn-secondary">
+                          Previous
+                        </button>
+                        <span className="pagination-info">Page {currentPage} of {totalPages}</span>
+                        <button onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages} className="btn btn-secondary">
+                          Next
+                        </button>
+                      </div>
+                      <div className="pagination-mobile">
+                        <button onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1} className="btn btn-sm btn-secondary">
+                          Prev
+                        </button>
+                        <span className="pagination-info">{currentPage} / {totalPages}</span>
+                        <button onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages} className="btn btn-sm btn-secondary">
+                          Next
+                        </button>
+                      </div>
+                    </>
                   )}
                 </>
               )}

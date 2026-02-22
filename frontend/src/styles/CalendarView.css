@@ -449,9 +449,10 @@
     padding: 0.375rem 0.125rem;
   }
 
-  /* Touch-friendly calendar days - minimum 44px */
+  /* Taller calendar days on mobile */
   .calendar-day {
-    min-height: 54px;
+    min-height: 80px;
+    aspect-ratio: unset;
     padding: 0.375rem 0.125rem;
     font-size: 0.75rem;
   }
@@ -540,7 +541,8 @@
   }
 
   .calendar-day {
-    min-height: 48px;
+    min-height: 70px;
+    aspect-ratio: unset;
     padding: 0.25rem 0.125rem;
   }
 
@@ -572,7 +574,8 @@
   }
 
   .calendar-day {
-    min-height: 44px;
+    min-height: 60px;
+    aspect-ratio: unset;
   }
 
   .day-number {
