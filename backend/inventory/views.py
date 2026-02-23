@@ -300,7 +300,7 @@ class ProgramLotAllocationViewSet(viewsets.ModelViewSet):
 
 
 class BillViewSet(viewsets.ModelViewSet):
-    queryset = Bill.objects.all()
+    queryset = Bill.objects.all().order_by('-bill_date')
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = {

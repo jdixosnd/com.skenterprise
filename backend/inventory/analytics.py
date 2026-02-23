@@ -1,7 +1,7 @@
 """
 Analytics API endpoints for dashboard metrics and visualizations
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from decimal import Decimal
 from django.db.models import Sum, Count, Avg, F, Case, When, IntegerField, Q, DecimalField
 from django.db.models.functions import TruncMonth, TruncDate, Coalesce
@@ -603,7 +603,7 @@ def party_balance_overview(request):
     party_ids = lots_queryset.values_list('party_id', flat=True).distinct()
     parties = Party.objects.filter(id__in=party_ids)
 
-    now = timezone.now().date()
+    now = date.today()
 
     for party in parties:
         party_lots = lots_queryset.filter(party=party)
@@ -642,23 +642,22 @@ def party_balance_overview(request):
             '90+': {'count': 0, 'meters': 0}
         }
 
-        for lot in party_lots:
-            if lot.current_balance > 0:
-                days_old = (now - lot.inward_date).days
-                balance = float(lot.current_balance)
+        for lot in party_lots.filter(current_balance__gt=0):
+            days_old = (now - lot.inward_date).days
+            balance = float(lot.current_balance)
 
-                if days_old <= 30:
-                    duration_summary['0-30']['count'] += 1
-                    duration_summary['0-30']['meters'] += balance
-                elif days_old <= 60:
-                    duration_summary['31-60']['count'] += 1
-                    duration_summary['31-60']['meters'] += balance
-                elif days_old <= 90:
-                    duration_summary['61-90']['count'] += 1
-                    duration_summary['61-90']['meters'] += balance
-                else:
-                    duration_summary['90+']['count'] += 1
-                    duration_summary['90+']['meters'] += balance
+            if days_old <= 30:
+                duration_summary['0-30']['count'] += 1
+                duration_summary['0-30']['meters'] += balance
+            elif days_old <= 60:
+                duration_summary['31-60']['count'] += 1
+                duration_summary['31-60']['meters'] += balance
+            elif days_old <= 90:
+                duration_summary['61-90']['count'] += 1
+                duration_summary['61-90']['meters'] += balance
+            else:
+                duration_summary['90+']['count'] += 1
+                duration_summary['90+']['meters'] += balance
 
         # Recent lots (last 20 with balance)
         recent_lots = party_lots.order_by('-inward_date')[:20]
