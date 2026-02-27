@@ -436,7 +436,7 @@ class ProcessProgramAdmin(ImportExportModelAdmin):
         return super().has_change_permission(request, obj)
 
     def has_delete_permission(self, request, obj=None):
-        if obj and obj.status == 'Completed':
+        if obj and obj.status == 'Completed' and not request.user.is_superuser:
             return False
         return super().has_delete_permission(request, obj)
 

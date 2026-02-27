@@ -216,7 +216,10 @@ class InwardLot(models.Model):
             last_number = int(last_lot.lot_number.split('-')[-1])
             next_number = last_number + 1
         else:
-            next_number = 1
+            try:
+                next_number = int(SystemConfig.get_config('LOT_SEQUENCE_START', '1'))
+            except (ValueError, TypeError):
+                next_number = 1
 
         return f"{prefix}{next_number:03d}"
 
