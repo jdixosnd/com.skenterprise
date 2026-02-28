@@ -26,7 +26,7 @@ from .reports import generate_bill_pdf, generate_ledger_excel
 @permission_classes([IsAuthenticated])
 def get_current_user(request):
     user = request.user
-    is_admin = user.is_superuser or user.groups.filter(name='Admin').exists()
+    is_admin = user.is_superuser or user.is_staff or user.groups.filter(name='Admin').exists()
     return Response({
         'username': user.username,
         'is_staff': user.is_staff,
@@ -66,7 +66,7 @@ def fiscal_year_reset_status(request):
 def fiscal_year_reset(request):
     from datetime import date
     user = request.user
-    if not (user.is_superuser or user.groups.filter(name='Admin').exists()):
+    if not (user.is_superuser or user.is_staff or user.groups.filter(name='Admin').exists()):
         return Response({'error': 'Admin access required'}, status=status.HTTP_403_FORBIDDEN)
 
     today = date.today()
