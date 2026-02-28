@@ -287,7 +287,7 @@ const ImprovedDashboard = () => {
   const loadCommonData = async () => {
     try {
       const [partiesRes, qualityTypesRes] = await Promise.all([
-        partiesAPI.getAll(),
+        partiesAPI.getAll({ is_active: true }),
         qualityTypesAPI.getAll(),
       ]);
       setParties(partiesRes.data.results || partiesRes.data);
@@ -728,7 +728,7 @@ const ImprovedDashboard = () => {
       toast.showSuccess('Party deleted successfully');
       loadCommonData();
     } catch (err) {
-      toast.showError(err.response?.data?.detail || 'Failed to delete party');
+      toast.showError(err.response?.data?.detail || err.response?.data?.error || 'Failed to delete party');
     } finally {
       setLoading(false);
     }

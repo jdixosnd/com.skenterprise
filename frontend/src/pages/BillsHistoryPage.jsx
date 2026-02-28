@@ -79,7 +79,7 @@ const BillsHistoryPage = () => {
 
   const loadParties = async () => {
     try {
-      const response = await partiesAPI.getAll();
+      const response = await partiesAPI.getAll({ is_active: true });
       setParties(response.data.results || response.data);
     } catch (err) {
       console.error('Failed to load parties:', err);

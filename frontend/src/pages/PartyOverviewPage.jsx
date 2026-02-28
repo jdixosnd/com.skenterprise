@@ -81,7 +81,7 @@ const PartyOverviewPage = () => {
   const loadDropdownData = async () => {
     try {
       const [partiesRes, qualityRes] = await Promise.all([
-        partiesAPI.getAll(),
+        partiesAPI.getAll({ is_active: true }),
         qualityTypesAPI.getAll()
       ]);
       setParties(partiesRes.data.results || partiesRes.data);
