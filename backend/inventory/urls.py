@@ -3,7 +3,8 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     SystemConfigViewSet, PartyViewSet, QualityTypeViewSet, PartyQualityRateViewSet,
     InwardLotViewSet, ProcessProgramViewSet, ProgramLotAllocationViewSet,
-    BillViewSet, NotificationViewSet, get_csrf_token, get_party_quality_rate
+    BillViewSet, NotificationViewSet, get_csrf_token, get_party_quality_rate,
+    get_current_user, fiscal_year_reset_status, fiscal_year_reset
 )
 from . import analytics
 
@@ -20,6 +21,9 @@ router.register(r'notifications', NotificationViewSet, basename='notification')
 
 urlpatterns = [
     path('csrf/', get_csrf_token, name='csrf'),
+    path('auth/user/', get_current_user, name='current-user'),
+    path('fiscal-year-reset/status/', fiscal_year_reset_status, name='fy-reset-status'),
+    path('fiscal-year-reset/apply/', fiscal_year_reset, name='fy-reset-apply'),
     path('rates/party-quality/', get_party_quality_rate, name='party-quality-rate'),
     path('', include(router.urls)),
 

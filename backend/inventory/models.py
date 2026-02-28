@@ -207,7 +207,9 @@ class InwardLot(models.Model):
 
     @classmethod
     def generate_next_lot_number(cls, fiscal_year):
-        prefix = f"LOT-{fiscal_year}-"
+        from datetime import datetime
+        current_month = datetime.now().month
+        prefix = f"LOT-{fiscal_year}-{current_month:02d}-"
         last_lot = cls.objects.filter(
             lot_number__startswith=prefix
         ).order_by('-lot_number').first()
@@ -306,8 +308,10 @@ class ProcessProgram(models.Model):
     @classmethod
     def generate_next_program_number(cls):
         from datetime import datetime
-        current_year = datetime.now().year
-        prefix = f"PRG-{current_year}-"
+        now = datetime.now()
+        current_year = now.year
+        current_month = now.month
+        prefix = f"PRG-{current_year}-{current_month:02d}-"
 
         last_program = cls.objects.filter(
             program_number__startswith=prefix
@@ -557,8 +561,10 @@ class Bill(models.Model):
     @classmethod
     def generate_next_bill_number(cls):
         from datetime import datetime
-        current_year = datetime.now().year
-        prefix = f"BILL-{current_year}-"
+        now = datetime.now()
+        current_year = now.year
+        current_month = now.month
+        prefix = f"BILL-{current_year}-{current_month:02d}-"
 
         last_bill = cls.objects.filter(
             bill_number__startswith=prefix
@@ -568,7 +574,10 @@ class Bill(models.Model):
             last_number = int(last_bill.bill_number.split('-')[-1])
             next_number = last_number + 1
         else:
-            next_number = 1
+            try:
+                next_number = int(SystemConfig.get_config('BILL_SEQUENCE_START', '1'))
+            except (ValueError, TypeError):
+                next_number = 1
 
         return f"{prefix}{next_number:04d}"
 

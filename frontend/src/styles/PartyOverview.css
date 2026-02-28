@@ -743,10 +743,23 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 1rem;
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
   border-top: 1px solid var(--border-color);
+}
+
+.pagination-desktop .pagination-info,
+.pagination-mobile .pagination-info {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.pagination-desktop .btn,
+.pagination-mobile .btn {
+  padding: 0.3rem 0.75rem;
+  font-size: 0.8125rem;
+  min-width: unset;
 }
 
 .pagination-mobile { display: none; }
@@ -755,12 +768,11 @@
   .pagination-desktop { display: none !important; }
   .pagination-mobile {
     display: flex !important;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
-    gap: 0.5rem;
-    margin-top: 1rem;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
     padding-top: 0.75rem;
     border-top: 1px solid var(--border-color);
   }
-  .pagination-mobile .pagination-info { font-size: 0.8rem; }
 }

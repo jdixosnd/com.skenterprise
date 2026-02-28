@@ -137,6 +137,18 @@ const ImprovedDashboard = () => {
   const [qualitiesSortKey, setQualitiesSortKey] = useState('name');
   const [qualitiesSortDirection, setQualitiesSortDirection] = useState('asc');
 
+  // Grey-In filter state
+  const [lotsPartyFilter, setLotsPartyFilter] = useState('');
+  const [lotsQualityFilter, setLotsQualityFilter] = useState('');
+  const [lotsFromDate, setLotsFromDate] = useState('');
+  const [lotsToDate, setLotsToDate] = useState('');
+
+  // Program Entry filter state
+  const [programsPartyFilter, setProgramsPartyFilter] = useState('');
+  const [programsQualityFilter, setProgramsQualityFilter] = useState('');
+  const [programsFromDate, setProgramsFromDate] = useState('');
+  const [programsToDate, setProgramsToDate] = useState('');
+
   // Pagination states
   const [lotsCurrentPage, setLotsCurrentPage] = useState(1);
   const [programsCurrentPage, setProgramsCurrentPage] = useState(1);
@@ -827,6 +839,24 @@ const ImprovedDashboard = () => {
     }
   };
 
+  const handleDeleteLot = async (lot) => {
+    if (lot.has_allocations) {
+      toast.showError('Cannot delete: programs have been created for this lot');
+      return;
+    }
+    if (!window.confirm(`Delete lot ${lot.lot_number}? This cannot be undone.`)) return;
+    setLoading(true);
+    try {
+      await inwardLotsAPI.delete(lot.id);
+      toast.showSuccess('Lot deleted successfully');
+      loadLots();
+    } catch (err) {
+      toast.showError(err.response?.data?.error || 'Failed to delete lot');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Helper functions
   const handleProgramChange = (e) => {
     const { name, value } = e.target;
@@ -1139,16 +1169,54 @@ const ImprovedDashboard = () => {
 
   // Sorted and paginated data for each section
   const sortedLots = useMemo(() => {
-    return sortData(lots, lotsSortKey, lotsSortDirection);
-  }, [lots, lotsSortKey, lotsSortDirection]);
+    let filtered = lots;
+    if (lotsPartyFilter) {
+      filtered = filtered.filter(lot => lot.party === parseInt(lotsPartyFilter));
+    }
+    if (lotsQualityFilter) {
+      filtered = filtered.filter(lot => lot.quality_type === parseInt(lotsQualityFilter));
+    }
+    if (lotsFromDate) {
+      filtered = filtered.filter(lot => lot.inward_date >= lotsFromDate);
+    }
+    if (lotsToDate) {
+      filtered = filtered.filter(lot => lot.inward_date <= lotsToDate);
+    }
+    return sortData(filtered, lotsSortKey, lotsSortDirection);
+  }, [lots, lotsSortKey, lotsSortDirection, lotsPartyFilter, lotsQualityFilter, lotsFromDate, lotsToDate]);
 
   const paginatedLots = useMemo(() => {
     return paginateData(sortedLots, lotsCurrentPage, lotsPerPage);
   }, [sortedLots, lotsCurrentPage, lotsPerPage]);
 
   const sortedPrograms = useMemo(() => {
-    return sortData(programs, programsSortKey, programsSortDirection);
-  }, [programs, programsSortKey, programsSortDirection]);
+    let filtered = programs;
+    if (programsPartyFilter) {
+      filtered = filtered.filter(program => {
+        if (!program.lot_allocations || program.lot_allocations.length === 0) return false;
+        return program.lot_allocations.some(alloc => {
+          const lot = lots.find(l => l.id === alloc.lot);
+          return lot && lot.party === parseInt(programsPartyFilter);
+        });
+      });
+    }
+    if (programsQualityFilter) {
+      filtered = filtered.filter(program => {
+        if (!program.lot_allocations || program.lot_allocations.length === 0) return false;
+        return program.lot_allocations.some(alloc => {
+          const lot = lots.find(l => l.id === alloc.lot);
+          return lot && lot.quality_type === parseInt(programsQualityFilter);
+        });
+      });
+    }
+    if (programsFromDate) {
+      filtered = filtered.filter(program => program.created_at.slice(0, 10) >= programsFromDate);
+    }
+    if (programsToDate) {
+      filtered = filtered.filter(program => program.created_at.slice(0, 10) <= programsToDate);
+    }
+    return sortData(filtered, programsSortKey, programsSortDirection);
+  }, [programs, programsSortKey, programsSortDirection, programsPartyFilter, programsQualityFilter, programsFromDate, programsToDate, lots]);
 
   const paginatedPrograms = useMemo(() => {
     return paginateData(sortedPrograms, programsCurrentPage, programsPerPage);
@@ -1194,7 +1262,7 @@ const ImprovedDashboard = () => {
               {activeSection === 'settings' && <Icons.Factory size={24} />}
             </div>
             <h1>
-              {activeSection === 'inward' && 'Inward Log'}
+              {activeSection === 'inward' && 'Grey-In'}
               {activeSection === 'program' && 'Program Entry'}
               {activeSection === 'billing' && 'Billing & Reports'}
               {activeSection === 'settings' && 'Settings'}
@@ -1231,9 +1299,62 @@ const ImprovedDashboard = () => {
 
         <div className="content-body">
           <div className="section-content">
-            {/* INWARD LOG SECTION */}
+            {/* GREY-IN SECTION */}
             {activeSection === 'inward' && (
               <>
+                <div className="card" style={{ marginBottom: '1rem' }}>
+                  <div className="card-body" style={{ padding: '1rem 1.25rem' }}>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Party</label>
+                        <select
+                          value={lotsPartyFilter}
+                          onChange={e => { setLotsPartyFilter(e.target.value); setLotsCurrentPage(1); }}
+                        >
+                          <option value="">All Parties</option>
+                          {parties.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label>Quality Type</label>
+                        <select
+                          value={lotsQualityFilter}
+                          onChange={e => { setLotsQualityFilter(e.target.value); setLotsCurrentPage(1); }}
+                        >
+                          <option value="">All Quality Types</option>
+                          {qualityTypes.map(q => <option key={q.id} value={q.id}>{q.name}</option>)}
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label>From Date</label>
+                        <input
+                          type="date"
+                          value={lotsFromDate}
+                          onChange={e => { setLotsFromDate(e.target.value); setLotsCurrentPage(1); }}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>To Date</label>
+                        <input
+                          type="date"
+                          value={lotsToDate}
+                          onChange={e => { setLotsToDate(e.target.value); setLotsCurrentPage(1); }}
+                        />
+                      </div>
+                      {(lotsPartyFilter || lotsQualityFilter || lotsFromDate || lotsToDate) && (
+                        <div className="form-group" style={{ justifyContent: 'flex-end' }}>
+                          <label>&nbsp;</label>
+                          <button
+                            onClick={() => { setLotsPartyFilter(''); setLotsQualityFilter(''); setLotsFromDate(''); setLotsToDate(''); setLotsCurrentPage(1); }}
+                            className="btn btn-secondary"
+                          >
+                            Clear Filters
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
                 <div className="card">
                   <div className="card-body">
                     {/* Desktop Table View */}
@@ -1275,7 +1396,7 @@ const ImprovedDashboard = () => {
                           {paginatedLots.length === 0 ? (
                             <tr>
                               <td colSpan="10" className="text-center">
-                                No inward lots found. Click "Add New Lot" to create one.
+                                No Grey-In entries found. Click &quot;Add New Lot&quot; to create one.
                               </td>
                             </tr>
                           ) : (
@@ -1295,13 +1416,21 @@ const ImprovedDashboard = () => {
                                 <td>{lot.lr_number || '-'}</td>
                                 <td>{format(new Date(lot.created_at), 'dd MMM yyyy')}</td>
                                 <td>{format(new Date(lot.updated_at), 'dd MMM yyyy HH:mm')}</td>
-                                <td>
+                                <td style={{ display: 'flex', gap: '0.4rem' }}>
                                   <button
                                     onClick={() => openInwardModal(lot)}
                                     className="btn btn-sm btn-secondary"
                                     title="Edit"
                                   >
                                     Edit
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteLot(lot)}
+                                    className="btn btn-sm btn-danger"
+                                    title={lot.has_allocations ? 'Cannot delete - programs exist for this lot' : 'Delete'}
+                                    disabled={lot.has_allocations}
+                                  >
+                                    Delete
                                   </button>
                                 </td>
                               </tr>
@@ -1320,7 +1449,7 @@ const ImprovedDashboard = () => {
                     <div className="card-view">
                       {paginatedLots.length === 0 ? (
                         <div className="text-center" style={{ padding: '2rem' }}>
-                          No inward lots found. Click "Add New Lot" to create one.
+                          No Grey-In entries found. Click &quot;Add New Lot&quot; to create one.
                         </div>
                       ) : (
                         paginatedLots.map((lot) => (
@@ -1373,6 +1502,14 @@ const ImprovedDashboard = () => {
                               >
                                 Edit Lot
                               </button>
+                              <button
+                                onClick={() => handleDeleteLot(lot)}
+                                className="btn btn-sm btn-danger"
+                                title={lot.has_allocations ? 'Cannot delete - programs exist for this lot' : 'Delete'}
+                                disabled={lot.has_allocations}
+                              >
+                                Delete
+                              </button>
                             </div>
                           </div>
                         ))
@@ -1391,6 +1528,59 @@ const ImprovedDashboard = () => {
             {/* PROGRAM ENTRY SECTION */}
             {activeSection === 'program' && (
               <>
+                <div className="card" style={{ marginBottom: '1rem' }}>
+                  <div className="card-body" style={{ padding: '1rem 1.25rem' }}>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Party</label>
+                        <select
+                          value={programsPartyFilter}
+                          onChange={e => { setProgramsPartyFilter(e.target.value); setProgramsCurrentPage(1); }}
+                        >
+                          <option value="">All Parties</option>
+                          {parties.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label>Quality Type</label>
+                        <select
+                          value={programsQualityFilter}
+                          onChange={e => { setProgramsQualityFilter(e.target.value); setProgramsCurrentPage(1); }}
+                        >
+                          <option value="">All Quality Types</option>
+                          {qualityTypes.map(q => <option key={q.id} value={q.id}>{q.name}</option>)}
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label>From Date</label>
+                        <input
+                          type="date"
+                          value={programsFromDate}
+                          onChange={e => { setProgramsFromDate(e.target.value); setProgramsCurrentPage(1); }}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>To Date</label>
+                        <input
+                          type="date"
+                          value={programsToDate}
+                          onChange={e => { setProgramsToDate(e.target.value); setProgramsCurrentPage(1); }}
+                        />
+                      </div>
+                      {(programsPartyFilter || programsQualityFilter || programsFromDate || programsToDate) && (
+                        <div className="form-group" style={{ justifyContent: 'flex-end' }}>
+                          <label>&nbsp;</label>
+                          <button
+                            onClick={() => { setProgramsPartyFilter(''); setProgramsQualityFilter(''); setProgramsFromDate(''); setProgramsToDate(''); setProgramsCurrentPage(1); }}
+                            className="btn btn-secondary"
+                          >
+                            Clear Filters
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
                 <div className="card">
                   <div className="card-body">
                     {/* Desktop Table View */}
@@ -1404,6 +1594,7 @@ const ImprovedDashboard = () => {
                             <th onClick={() => handleSort('design_number', programsSortKey, programsSortDirection, setProgramsSortKey, setProgramsSortDirection, programs, setPrograms)} className="sortable-header">
                               Design Number {renderSortIcon('design_number', programsSortKey, programsSortDirection)}
                             </th>
+                            <th>Party</th>
                             <th onClick={() => handleSort('challan_no', programsSortKey, programsSortDirection, setProgramsSortKey, setProgramsSortDirection, programs, setPrograms)} className="sortable-header">
                               Challan No. {renderSortIcon('challan_no', programsSortKey, programsSortDirection)}
                             </th>
@@ -1431,7 +1622,7 @@ const ImprovedDashboard = () => {
                         <tbody>
                           {paginatedPrograms.length === 0 ? (
                             <tr>
-                              <td colSpan="9" className="text-center">
+                              <td colSpan="10" className="text-center">
                                 No programs found. Click "Add New Program" to create one.
                               </td>
                             </tr>
@@ -1447,6 +1638,7 @@ const ImprovedDashboard = () => {
                                   </span>
                                 </td>
                                 <td>{program.design_number}</td>
+                                <td>{program.lot_allocations?.[0]?.lot_party || '-'}</td>
                                 <td>{program.challan_no || '-'}</td>
                                 <td>{parseFloat(program.input_meters).toFixed(2)}m</td>
                                 <td>{parseFloat(program.output_meters || 0).toFixed(2)}m</td>
@@ -2522,12 +2714,17 @@ const ImprovedDashboard = () => {
           <div className="form-group">
             <label>Lot Allocations *</label>
             <small className="help-text">
-              Total: {totalAllocated.toFixed(2)}m
-              {programFormData.input_meters && (
-                <span className={Math.abs(totalAllocated - parseFloat(programFormData.input_meters)) > 0.01 ? 'text-danger' : 'text-success'}>
-                  {' '}(Must equal: {parseFloat(programFormData.input_meters).toFixed(2)}m)
-                </span>
-              )}
+              Allocated: {totalAllocated.toFixed(2)}m
+              {programFormData.input_meters && (() => {
+                const remaining = parseFloat(programFormData.input_meters) - totalAllocated;
+                if (remaining > 0.01) {
+                  return <span className="text-warning">{' '}· Remaining: {remaining.toFixed(2)}m</span>;
+                } else if (remaining < -0.01) {
+                  return <span className="text-danger">{' '}· Over by {Math.abs(remaining).toFixed(2)}m</span>;
+                } else {
+                  return <span className="text-success">{' '}· Fully allocated ✓</span>;
+                }
+              })()}
             </small>
             {!programFormData.party && (
               <p className="text-warning" style={{ marginBottom: '1rem' }}>
@@ -2548,11 +2745,20 @@ const ImprovedDashboard = () => {
                   disabled={loading || programFormData.status === 'Completed' || !programFormData.party}
                 >
                   <option value="">Select Lot</option>
-                  {filteredAvailableLots.map((lot) => (
-                    <option key={lot.id} value={lot.id}>
-                      {lot.lot_number} - {lot.party_name} ({lot.quality_name}) - Bal: {parseFloat(lot.current_balance).toFixed(2)}m {lot.is_gstin_registered ? '[GST]' : '[Non-GST]'}
-                    </option>
-                  ))}
+                  {filteredAvailableLots
+                    .filter(lot => {
+                      const alreadySelected = programFormData.lot_allocations
+                        .filter((_, i) => i !== index)
+                        .map(a => parseInt(a.lot_id))
+                        .filter(id => !isNaN(id) && id > 0);
+                      return !alreadySelected.includes(lot.id);
+                    })
+                    .map((lot) => (
+                      <option key={lot.id} value={lot.id}>
+                        {lot.lot_number} - {lot.party_name} ({lot.quality_name}) - Bal: {parseFloat(lot.current_balance).toFixed(2)}m {lot.is_gstin_registered ? '[GST]' : '[Non-GST]'}
+                      </option>
+                    ))
+                  }
                 </select>
                 <input
                   type="number"

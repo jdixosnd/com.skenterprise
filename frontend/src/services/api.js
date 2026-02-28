@@ -105,6 +105,7 @@ export const inwardLotsAPI = {
   getOne: (id) => api.get(`/inward-lots/${id}/`),
   create: (data) => api.post('/inward-lots/', data),
   update: (id, data) => api.put(`/inward-lots/${id}/`, data),
+  delete: (id) => api.delete(`/inward-lots/${id}/`),
   getAvailableBalance: (id) => api.get(`/inward-lots/${id}/available_balance/`),
   getAvailableLots: (params) => api.get('/inward-lots/available_lots/', { params }),
 };
@@ -168,6 +169,12 @@ export const ratesAPI = {
     api.get('/rates/party-quality/', {
       params: { party_id: partyId, quality_type_id: qualityTypeId }
     }),
+};
+
+// Fiscal Year Reset
+export const fiscalYearResetAPI = {
+  getStatus: () => api.get('/fiscal-year-reset/status/'),
+  apply: () => api.post('/fiscal-year-reset/apply/'),
 };
 
 // Party Quality Rates (Custom Rates)

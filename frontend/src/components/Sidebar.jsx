@@ -1,12 +1,21 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Icons } from '../constants/icons';
+import { fiscalYearResetAPI } from '../services/api';
 import '../styles/Sidebar.css';
 
 const Sidebar = ({ activePage, sidebarOpen, setSidebarOpen }) => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
+    const [resetStatus, setResetStatus] = useState(null);
+
+    useEffect(() => {
+        if (!user?.is_admin) return;
+        fiscalYearResetAPI.getStatus()
+            .then(res => setResetStatus(res.data))
+            .catch(() => {});
+    }, [user?.is_admin]);
 
     // Auto-collapse sidebar on mobile only during resize, not on mount
     // This prevents hiding the sidebar when user has it open
@@ -33,7 +42,7 @@ const Sidebar = ({ activePage, sidebarOpen, setSidebarOpen }) => {
     const menuItems = [
         { id: 'dashboard', path: '/analytics', icon: <Icons.Chart size={24} />, label: 'Dashboard', description: 'Analytics & Insights', isRoute: true },
         { id: 'party-overview', path: '/party-overview', icon: <Icons.Party size={24} />, label: 'Party Balance', description: 'Material overview by party', isRoute: true },
-        { id: 'inward', icon: <Icons.Download size={24} />, label: 'Inward Log', description: 'Record incoming stock', isRoute: false },
+        { id: 'inward', icon: <Icons.Download size={24} />, label: 'Grey-In', description: 'Grey fabric inward entries', isRoute: false },
         { id: 'program', icon: <Icons.Package size={24} />, label: 'Program Entry', description: 'Processing jobs', isRoute: false },
         { id: 'billing', icon: <Icons.Billing size={24} />, label: 'Billing', description: 'Bills & Reports', isRoute: false },
         { id: 'bills-history', path: '/bills-history', icon: <Icons.Document size={24} />, label: 'Bills History', description: 'View All Bills', isRoute: true },
@@ -101,6 +110,44 @@ const Sidebar = ({ activePage, sidebarOpen, setSidebarOpen }) => {
                         )}
                     </button>
                 ))}
+
+                {user?.is_admin && (
+                    <button
+                        className={`nav-item fiscal-reset-item
+                            ${activePage === 'fiscal-year-reset' ? 'active' : ''}
+                            ${resetStatus?.reset_pending ? 'reset-pending' : ''}
+                            ${!resetStatus?.is_reset_month ? 'reset-disabled' : ''}`}
+                        onClick={() => resetStatus?.is_reset_month && navigate('/fiscal-year-reset')}
+                        disabled={!resetStatus?.is_reset_month}
+                        title={
+                            !resetStatus?.is_reset_month
+                                ? `Fiscal Year Reset (available in month ${resetStatus?.fiscal_year_start_month})`
+                                : resetStatus?.reset_pending
+                                    ? 'Fiscal Year Reset — Action Required'
+                                    : 'Fiscal Year Reset — Done'
+                        }
+                    >
+                        <span className="nav-icon">
+                            <Icons.Refresh size={24} />
+                            {resetStatus?.reset_pending && <span className="reset-badge" />}
+                        </span>
+                        {sidebarOpen && (
+                            <div className="nav-content">
+                                <span className="nav-label">
+                                    FY Reset
+                                    {resetStatus?.reset_pending && ' ⚠'}
+                                </span>
+                                <span className="nav-description">
+                                    {!resetStatus?.is_reset_month
+                                        ? 'Not available yet'
+                                        : resetStatus?.reset_pending
+                                            ? 'Action required'
+                                            : `Done — FY ${resetStatus?.current_fiscal_year}`}
+                                </span>
+                            </div>
+                        )}
+                    </button>
+                )}
             </nav>
 
             <div className="sidebar-footer">

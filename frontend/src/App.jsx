@@ -6,9 +6,18 @@ import ImprovedDashboard from './pages/ImprovedDashboard';
 import BillsHistoryPage from './pages/BillsHistoryPage';
 import AnalyticsDashboard from './pages/AnalyticsDashboard';
 import PartyOverviewPage from './pages/PartyOverviewPage';
+import FiscalYearResetPage from './pages/FiscalYearResetPage';
 import './index.css';
 
 // Protected Route Component
+const AdminRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  if (loading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading...</div>;
+  if (!user) return <Navigate to="/login" replace />;
+  if (!user.is_admin) return <Navigate to="/" replace />;
+  return children;
+};
+
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
 
@@ -91,6 +100,15 @@ const AppRouter = () => {
           <ProtectedRoute>
             <PartyOverviewPage />
           </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/fiscal-year-reset"
+        element={
+          <AdminRoute>
+            <FiscalYearResetPage />
+          </AdminRoute>
         }
       />
 

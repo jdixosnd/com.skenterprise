@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
 import NotificationCenter from '../components/NotificationCenter';
-import { partiesAPI, qualityTypesAPI, notificationsAPI } from '../services/api';
+import { partiesAPI, qualityTypesAPI, notificationsAPI, inwardLotsAPI } from '../services/api';
 import analyticsAPI from '../services/analytics';
 import { Icons } from '../constants/icons';
 import {
@@ -35,6 +35,14 @@ const PartyOverviewPage = () => {
   const [error, setError] = useState('');
   const [expandedParty, setExpandedParty] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Lots modal state
+  const [qualityLotsModal, setQualityLotsModal] = useState(false);
+  const [qualityLotsLoading, setQualityLotsLoading] = useState(false);
+  const [qualityLots, setQualityLots] = useState([]);
+  const [selectedQuality, setSelectedQuality] = useState(null);
+  const [modalPage, setModalPage] = useState(1);
+  const MODAL_PAGE_SIZE = 10;
   const itemsPerPage = 10;
 
   // Notification state
@@ -130,6 +138,33 @@ const PartyOverviewPage = () => {
     if (percentage > 80) return 'badge-danger';
     if (percentage > 50) return 'badge-warning';
     return 'badge-success';
+  };
+
+  const openQualityLots = async (party, quality) => {
+    setSelectedQuality({
+      party_id: party.party_id,
+      party_name: party.party_name,
+      quality_id: quality.quality_id,
+      quality_name: quality.quality_name,
+    });
+    setQualityLotsModal(true);
+    setQualityLotsLoading(true);
+    setQualityLots([]);
+    setModalPage(1);
+    try {
+      const params = {
+        party: party.party_id,
+        quality_type: quality.quality_id,
+      };
+      if (filters.start_date) params.inward_date__gte = filters.start_date;
+      if (filters.end_date)   params.inward_date__lte = filters.end_date;
+      const res = await inwardLotsAPI.getAll(params);
+      setQualityLots(res.data.results || res.data);
+    } catch (e) {
+      console.error('Failed to load lots', e);
+    } finally {
+      setQualityLotsLoading(false);
+    }
   };
 
   // Pagination
@@ -291,6 +326,7 @@ const PartyOverviewPage = () => {
               </button>
             </div>
           </div>
+          <p className="filter-hint">Date range also filters the Quality-wise Breakdown</p>
         </div>
 
         {loading && !overviewData ? (
@@ -448,7 +484,12 @@ const PartyOverviewPage = () => {
                                   </thead>
                                   <tbody>
                                     {party.quality_breakdown.map((quality, idx) => (
-                                      <tr key={idx}>
+                                      <tr
+                                        key={idx}
+                                        onClick={() => openQualityLots(party, quality)}
+                                        style={{ cursor: 'pointer' }}
+                                        className="clickable-row"
+                                      >
                                         <td><strong>{quality.quality_name}</strong></td>
                                         <td>{quality.lot_count}</td>
                                         <td>{formatNumber(quality.total_inward)}</td>
@@ -467,7 +508,11 @@ const PartyOverviewPage = () => {
                               {/* Mobile card view */}
                               <div className="card-view">
                                 {party.quality_breakdown.map((quality, idx) => (
-                                  <div key={idx} className="data-card">
+                                  <div
+                                    key={idx}
+                                    className="data-card clickable-card"
+                                    onClick={() => openQualityLots(party, quality)}
+                                  >
                                     <div className="data-card-row">
                                       <span className="data-card-label">Quality Type</span>
                                       <strong className="data-card-value">{quality.quality_name}</strong>
@@ -731,6 +776,127 @@ const PartyOverviewPage = () => {
             </div>
           </>
         ) : null}
+
+        {/* Quality Lots Modal */}
+        {qualityLotsModal && (
+          <div className="modal-overlay" onClick={() => setQualityLotsModal(false)}>
+            <div className="modal-content modal-lg" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3>{selectedQuality?.quality_name} Lots — {selectedQuality?.party_name}</h3>
+                {(filters.start_date || filters.end_date) && (
+                  <p className="modal-subtitle">
+                    {filters.start_date && `From ${filters.start_date}`}
+                    {filters.start_date && filters.end_date && ' · '}
+                    {filters.end_date && `To ${filters.end_date}`}
+                  </p>
+                )}
+                <button className="modal-close" onClick={() => setQualityLotsModal(false)}>×</button>
+              </div>
+              <div className="modal-body">
+                {qualityLotsLoading ? (
+                  <div className="loading-overlay">Loading lots...</div>
+                ) : qualityLots.length === 0 ? (
+                  <div className="no-data">No lots found for this filter.</div>
+                ) : (() => {
+                  const modalTotalPages = Math.ceil(qualityLots.length / MODAL_PAGE_SIZE);
+                  const pagedLots = qualityLots.slice(
+                    (modalPage - 1) * MODAL_PAGE_SIZE,
+                    modalPage * MODAL_PAGE_SIZE
+                  );
+                  return (
+                    <>
+                      {/* Desktop table */}
+                      <div className="table-scroll table-responsive">
+                        <table className="data-table">
+                          <thead>
+                            <tr>
+                              <th>Lot Number</th>
+                              <th>Inward Date</th>
+                              <th>Total Inward (m)</th>
+                              <th>Current Balance (m)</th>
+                              <th>Balance %</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {pagedLots.map((lot) => (
+                              <tr key={lot.id}>
+                                <td><strong>{lot.lot_number}</strong></td>
+                                <td>{lot.inward_date}</td>
+                                <td>{formatNumber(lot.total_meters)}</td>
+                                <td>{formatNumber(lot.current_balance)}</td>
+                                <td>
+                                  <span className={`badge ${getConsumptionBadgeClass(100 - lot.balance_percentage)}`}>
+                                    {parseFloat(lot.balance_percentage).toFixed(1)}%
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      {/* Mobile cards */}
+                      <div className="card-view">
+                        {pagedLots.map((lot) => (
+                          <div key={lot.id} className="data-card">
+                            <div className="data-card-row">
+                              <span className="data-card-label">Lot Number</span>
+                              <strong className="data-card-value">{lot.lot_number}</strong>
+                            </div>
+                            <div className="data-card-row">
+                              <span className="data-card-label">Inward Date</span>
+                              <span className="data-card-value">{lot.inward_date}</span>
+                            </div>
+                            <div className="data-card-row">
+                              <span className="data-card-label">Total Inward</span>
+                              <span className="data-card-value">{formatNumber(lot.total_meters)} m</span>
+                            </div>
+                            <div className="data-card-row">
+                              <span className="data-card-label">Current Balance</span>
+                              <span className="data-card-value">{formatNumber(lot.current_balance)} m</span>
+                            </div>
+                            <div className="data-card-row">
+                              <span className="data-card-label">Balance %</span>
+                              <span className="data-card-value">
+                                <span className={`badge ${getConsumptionBadgeClass(100 - lot.balance_percentage)}`}>
+                                  {parseFloat(lot.balance_percentage).toFixed(1)}%
+                                </span>
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {/* Pagination */}
+                      {modalTotalPages > 1 && (
+                        <div className="pagination-desktop" style={{ marginTop: '1rem' }}>
+                          <button
+                            className="btn btn-secondary"
+                            onClick={() => setModalPage(p => p - 1)}
+                            disabled={modalPage === 1}
+                          >
+                            Previous
+                          </button>
+                          <span className="pagination-info">
+                            Page {modalPage} of {modalTotalPages}
+                            <span style={{ marginLeft: '8px', color: '#6b7280', fontSize: '0.85em' }}>
+                              ({qualityLots.length} total)
+                            </span>
+                          </span>
+                          <button
+                            className="btn btn-secondary"
+                            onClick={() => setModalPage(p => p + 1)}
+                            disabled={modalPage === modalTotalPages}
+                          >
+                            Next
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

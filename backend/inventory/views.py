@@ -23,6 +23,78 @@ from .reports import generate_bill_pdf, generate_ledger_excel
 
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_current_user(request):
+    user = request.user
+    is_admin = user.is_superuser or user.groups.filter(name='Admin').exists()
+    return Response({
+        'username': user.username,
+        'is_staff': user.is_staff,
+        'is_admin': is_admin,
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def fiscal_year_reset_status(request):
+    from datetime import date
+    today = date.today()
+    fiscal_start_month = int(SystemConfig.get_config('FISCAL_YEAR_START_MONTH', '4'))
+
+    if today.month >= fiscal_start_month:
+        current_fiscal_year = today.year
+    else:
+        current_fiscal_year = today.year - 1
+
+    last_reset_year_str = SystemConfig.get_config('LAST_FISCAL_RESET_YEAR', '0')
+    last_reset_year = int(last_reset_year_str)
+
+    is_reset_month = (today.month == fiscal_start_month)
+    reset_pending = is_reset_month and (last_reset_year != current_fiscal_year)
+
+    return Response({
+        'fiscal_year_start_month': fiscal_start_month,
+        'current_fiscal_year': current_fiscal_year,
+        'last_reset_year': last_reset_year,
+        'is_reset_month': is_reset_month,
+        'reset_pending': reset_pending,
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def fiscal_year_reset(request):
+    from datetime import date
+    user = request.user
+    if not (user.is_superuser or user.groups.filter(name='Admin').exists()):
+        return Response({'error': 'Admin access required'}, status=status.HTTP_403_FORBIDDEN)
+
+    today = date.today()
+    fiscal_start_month = int(SystemConfig.get_config('FISCAL_YEAR_START_MONTH', '4'))
+    if today.month >= fiscal_start_month:
+        current_fiscal_year = today.year
+    else:
+        current_fiscal_year = today.year - 1
+
+    if today.month != fiscal_start_month:
+        return Response(
+            {'error': 'Reset can only be applied during the fiscal year start month'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    SystemConfig.set_config('LOT_SEQUENCE_START', '1', 'Lot sequence starting number')
+    SystemConfig.set_config('BILL_SEQUENCE_START', '1', 'Bill sequence starting number')
+    SystemConfig.set_config('LAST_FISCAL_RESET_YEAR', str(current_fiscal_year),
+                            'Fiscal year when last sequence reset was applied')
+
+    return Response({
+        'success': True,
+        'message': f'Fiscal year {current_fiscal_year} sequence reset applied.',
+        'fiscal_year': current_fiscal_year,
+    })
+
+
+@api_view(['GET'])
 @permission_classes([AllowAny])
 @ensure_csrf_cookie
 def get_csrf_token(request):
@@ -108,9 +180,23 @@ class InwardLotViewSet(viewsets.ModelViewSet):
     serializer_class = InwardLotSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['party', 'quality_type', 'fiscal_year']
+    filterset_fields = {
+        'party': ['exact'],
+        'quality_type': ['exact'],
+        'fiscal_year': ['exact'],
+        'inward_date': ['exact', 'gte', 'lte'],
+    }
     search_fields = ['lot_number', 'party__name', 'notes']
     ordering_fields = ['lot_number', 'inward_date', 'created_at']
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.programlotallocation_set.exists():
+            return Response(
+                {'error': 'Cannot delete lot with existing program allocations'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return super().destroy(request, *args, **kwargs)
 
     @action(detail=True, methods=['get'])
     def available_balance(self, request, pk=None):

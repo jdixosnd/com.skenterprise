@@ -76,10 +76,21 @@ export const AuthProvider = ({ children }) => {
       );
 
       if (response.status === 200 || response.status === 302) {
-        // After successful login, determine user role
+        // Fetch is_admin flag from server
+        let is_admin = false;
+        try {
+          const userInfoRes = await axios.get('/api/auth/user/', {
+            withCredentials: true,
+            baseURL: API_BASE_URL.replace('/api', ''),
+          });
+          is_admin = userInfoRes.data.is_admin || false;
+        } catch (e) {
+          console.error('Failed to fetch user info:', e);
+        }
         const userData = {
           username,
           role: determineRole(username),
+          is_admin,
         };
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));

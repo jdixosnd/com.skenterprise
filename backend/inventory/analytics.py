@@ -626,6 +626,7 @@ def party_balance_overview(request):
             consumption_pct = (consumed / total_inward * 100) if total_inward > 0 else 0
 
             quality_list.append({
+                'quality_id': quality['quality_id'],
                 'quality_name': quality['quality_name'],
                 'lot_count': quality['lot_count'],
                 'total_inward': total_inward,

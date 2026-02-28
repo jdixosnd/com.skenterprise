@@ -52,6 +52,7 @@ class InwardLotSerializer(serializers.ModelSerializer):
     party_name = serializers.CharField(source='party.name', read_only=True)
     quality_name = serializers.CharField(source='quality_type.name', read_only=True)
     balance_percentage = serializers.SerializerMethodField()
+    has_allocations = serializers.SerializerMethodField()
     current_balance = serializers.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -63,13 +64,16 @@ class InwardLotSerializer(serializers.ModelSerializer):
         model = InwardLot
         fields = [
             'id', 'lot_number', 'party', 'party_name', 'quality_type', 'quality_name',
-            'total_meters', 'current_balance', 'balance_percentage',
+            'total_meters', 'current_balance', 'balance_percentage', 'has_allocations',
             'inward_date', 'fiscal_year', 'is_gstin_registered', 'lr_number', 'notes', 'created_at', 'updated_at'
         ]
         read_only_fields = ['lot_number', 'created_at', 'updated_at']
 
     def get_balance_percentage(self, obj):
         return float(obj.balance_percentage())
+
+    def get_has_allocations(self, obj):
+        return obj.programlotallocation_set.exists()
 
     def validate(self, data):
         if 'current_balance' in data and 'total_meters' in data:
