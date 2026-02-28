@@ -1189,6 +1189,20 @@ const ImprovedDashboard = () => {
     return paginateData(sortedLots, lotsCurrentPage, lotsPerPage);
   }, [sortedLots, lotsCurrentPage, lotsPerPage]);
 
+  const lotsQualitySummary = useMemo(() => {
+    if (!lotsPartyFilter) return [];
+    const map = {};
+    sortedLots.forEach(lot => {
+      const name = lot.quality_name || 'Unknown';
+      if (!map[name]) map[name] = { quality_name: name, total_meters: 0, total_balance: 0 };
+      map[name].total_meters += parseFloat(lot.total_meters) || 0;
+      map[name].total_balance += parseFloat(lot.current_balance) || 0;
+    });
+    return Object.values(map)
+      .map(row => ({ ...row, total_consumed: row.total_meters - row.total_balance }))
+      .sort((a, b) => a.quality_name.localeCompare(b.quality_name));
+  }, [sortedLots, lotsPartyFilter]);
+
   const sortedPrograms = useMemo(() => {
     let filtered = programs;
     if (programsPartyFilter) {
@@ -1522,6 +1536,44 @@ const ImprovedDashboard = () => {
                     </div>
                   </div>
                 </div>
+
+              {lotsPartyFilter && lotsQualitySummary.length > 0 && (
+                <div className="card" style={{ marginTop: '1rem' }}>
+                  <div className="card-body">
+                    <h4 style={{ margin: '0 0 0.75rem', fontSize: '1rem' }}>Summary by Quality</h4>
+                    <div className="table-container table-responsive">
+                      <table className="data-table">
+                        <thead>
+                          <tr>
+                            <th>Quality</th>
+                            <th>Total Meters</th>
+                            <th>Consumed</th>
+                            <th>Balance</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {lotsQualitySummary.map(row => (
+                            <tr key={row.quality_name}>
+                              <td>{row.quality_name}</td>
+                              <td>{row.total_meters.toFixed(2)}m</td>
+                              <td style={{ color: '#d97706', fontWeight: 500 }}>{row.total_consumed.toFixed(2)}m</td>
+                              <td style={{ color: '#16a34a', fontWeight: 500 }}>{row.total_balance.toFixed(2)}m</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot>
+                          <tr style={{ fontWeight: 600 }}>
+                            <td>Total</td>
+                            <td>{lotsQualitySummary.reduce((s, r) => s + r.total_meters, 0).toFixed(2)}m</td>
+                            <td style={{ color: '#d97706' }}>{lotsQualitySummary.reduce((s, r) => s + r.total_consumed, 0).toFixed(2)}m</td>
+                            <td style={{ color: '#16a34a' }}>{lotsQualitySummary.reduce((s, r) => s + r.total_balance, 0).toFixed(2)}m</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
               </>
             )}
 
