@@ -75,8 +75,8 @@ export const AuthProvider = ({ children }) => {
         }
       );
 
-      if (response.status === 200 || response.status === 302) {
-        // Fetch is_admin flag from server
+      if (response.status === 302) {
+        // Fetch is_admin flag from server — also acts as a second auth check
         let is_admin = false;
         try {
           const userInfoRes = await axios.get('/api/auth/user/', {
@@ -85,7 +85,8 @@ export const AuthProvider = ({ children }) => {
           });
           is_admin = userInfoRes.data.is_admin || false;
         } catch (e) {
-          console.error('Failed to fetch user info:', e);
+          // /api/auth/user/ returned 403 → session not actually created
+          throw new Error('Invalid credentials');
         }
         const userData = {
           username,
