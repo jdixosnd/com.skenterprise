@@ -75,8 +75,9 @@ export const AuthProvider = ({ children }) => {
         }
       );
 
-      if (response.status === 302) {
-        // Fetch is_admin flag from server — also acts as a second auth check
+      // Browser XHR always follows redirects, so 302 → 200 automatically.
+      // Use /api/auth/user/ as the real auth gate: 200 = session created, 403 = bad credentials.
+      if (response.status === 200 || response.status === 302) {
         let is_admin = false;
         try {
           const userInfoRes = await axios.get('/api/auth/user/', {
@@ -85,7 +86,7 @@ export const AuthProvider = ({ children }) => {
           });
           is_admin = userInfoRes.data.is_admin || false;
         } catch (e) {
-          // /api/auth/user/ returned 403 → session not actually created
+          // /api/auth/user/ returned 403 → session not actually created (wrong credentials)
           throw new Error('Invalid credentials');
         }
         const userData = {
@@ -97,7 +98,6 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('user', JSON.stringify(userData));
         return userData;
       } else {
-        console.error('Login failed with status:', response.status);
         throw new Error('Login failed');
       }
     } catch (error) {
