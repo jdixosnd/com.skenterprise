@@ -148,6 +148,7 @@ const ImprovedDashboard = () => {
   const [programsQualityFilter, setProgramsQualityFilter] = useState('');
   const [programsFromDate, setProgramsFromDate] = useState('');
   const [programsToDate, setProgramsToDate] = useState('');
+  const [programsStatusFilter, setProgramsStatusFilter] = useState('');
 
   // Pagination states
   const [lotsCurrentPage, setLotsCurrentPage] = useState(1);
@@ -1223,6 +1224,9 @@ const ImprovedDashboard = () => {
         });
       });
     }
+    if (programsStatusFilter) {
+      filtered = filtered.filter(program => program.status === programsStatusFilter);
+    }
     if (programsFromDate) {
       filtered = filtered.filter(program => program.created_at.slice(0, 10) >= programsFromDate);
     }
@@ -1230,7 +1234,7 @@ const ImprovedDashboard = () => {
       filtered = filtered.filter(program => program.created_at.slice(0, 10) <= programsToDate);
     }
     return sortData(filtered, programsSortKey, programsSortDirection);
-  }, [programs, programsSortKey, programsSortDirection, programsPartyFilter, programsQualityFilter, programsFromDate, programsToDate, lots]);
+  }, [programs, programsSortKey, programsSortDirection, programsPartyFilter, programsQualityFilter, programsStatusFilter, programsFromDate, programsToDate, lots]);
 
   const paginatedPrograms = useMemo(() => {
     return paginateData(sortedPrograms, programsCurrentPage, programsPerPage);
@@ -1604,6 +1608,17 @@ const ImprovedDashboard = () => {
                         </select>
                       </div>
                       <div className="form-group">
+                        <label>Status</label>
+                        <select
+                          value={programsStatusFilter}
+                          onChange={e => { setProgramsStatusFilter(e.target.value); setProgramsCurrentPage(1); }}
+                        >
+                          <option value="">All Status</option>
+                          <option value="Pending">Pending</option>
+                          <option value="Completed">Completed</option>
+                        </select>
+                      </div>
+                      <div className="form-group">
                         <label>From Date</label>
                         <input
                           type="date"
@@ -1619,11 +1634,11 @@ const ImprovedDashboard = () => {
                           onChange={e => { setProgramsToDate(e.target.value); setProgramsCurrentPage(1); }}
                         />
                       </div>
-                      {(programsPartyFilter || programsQualityFilter || programsFromDate || programsToDate) && (
+                      {(programsPartyFilter || programsQualityFilter || programsStatusFilter || programsFromDate || programsToDate) && (
                         <div className="form-group" style={{ justifyContent: 'flex-end' }}>
                           <label>&nbsp;</label>
                           <button
-                            onClick={() => { setProgramsPartyFilter(''); setProgramsQualityFilter(''); setProgramsFromDate(''); setProgramsToDate(''); setProgramsCurrentPage(1); }}
+                            onClick={() => { setProgramsPartyFilter(''); setProgramsQualityFilter(''); setProgramsStatusFilter(''); setProgramsFromDate(''); setProgramsToDate(''); setProgramsCurrentPage(1); }}
                             className="btn btn-secondary"
                           >
                             Clear Filters
